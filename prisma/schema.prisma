@@ -5,8 +5,11 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Kết nối qua pool cho app; kết nối trực tiếp cho lệnh prisma (db push, seed).
+  // Tên biến trùng với biến mà Neon tự tạo khi kết nối với Vercel.
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 enum Role {
