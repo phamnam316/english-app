@@ -1,0 +1,188 @@
+// Schema dựng lại từ các truy vấn/kiểu dữ liệu mà code frontend + API đang dùng.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Level {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum QuizType {
+  MULTIPLE_CHOICE
+  FILL_IN_BLANK
+  LISTENING
+  SPEAKING
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+// ---------------------------------------------------------------------------
+// User + các bảng NextAuth (PrismaAdapter)
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  /// null: tài khoản tạo bằng Google, chưa đặt mật khẩu
+  passwordHash  String?
+  role          Role      @default(USER)
+  xp            Int       @default(0)
+  streak        Int       @default(0)
+  lastActiveAt  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+  progress UserProgress[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------------------------------------------------------------------------
+// Nội dung học
+// ---------------------------------------------------------------------------
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  level       Level    @default(BEGINNER)
+  imageUrl    String?
+  order       Int      @default(0)
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  units Unit[]
+}
+
+model Unit {
+  id       String @id @default(cuid())
+  title    String
+  order    Int
+  courseId String
+
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+
+  @@index([courseId, order])
+}
+
+model Lesson {
+  id       String @id @default(cuid())
+  title    String
+  order    Int
+  xpReward Int    @default(10)
+  unitId   String
+
+  unit         Unit           @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  vocabularies Vocabulary[]
+  exercises    Exercise[]
+  progress     UserProgress[]
+
+  @@index([unitId, order])
+}
+
+model Vocabulary {
+  id              String  @id @default(cuid())
+  word            String
+  phonetic        String?
+  meaning         String
+  exampleSentence String?
+  audioUrl        String?
+  order           Int     @default(0)
+  lessonId        String
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId, order])
+}
+
+model Exercise {
+  id            String   @id @default(cuid())
+  question      String
+  type          QuizType
+  /// Mảng chuỗi các lựa chọn; null với câu tự điền
+  options       Json?
+  correctAnswer String
+  explanation   String?
+  audioUrl      String?
+  order         Int
+  lessonId      String
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId, order])
+}
+
+model UserProgress {
+  id          String         @id @default(cuid())
+  userId      String
+  lessonId    String
+  status      ProgressStatus @default(NOT_STARTED)
+  /// Điểm cao nhất, 0-100
+  score       Int?
+  completedAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
