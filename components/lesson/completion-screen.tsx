@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { BookCheck, Flame, House, LoaderCircle, RotateCcw, Star, Target, Trophy } from "lucide-react";
+import { BookCheck, Flame, Gamepad2, House, LoaderCircle, RotateCcw, Star, Target, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { useShallow } from "zustand/react/shallow";
 
@@ -196,6 +197,13 @@ function ResultLayout({ icon, iconClass, title, subtitle, stats, note, footer }:
         </div>
         {stats}
         {note && <p className="text-sm text-muted-foreground">{note}</p>}
+        <Link
+          href="/practice"
+          className="inline-flex items-center gap-2 rounded-full bg-surface-soft px-4 py-2 text-sm font-semibold text-primary outline-none hover:bg-secondary focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        >
+          <Gamepad2 aria-hidden className="size-4" />
+          Ôn từ vừa học bằng trò chơi
+        </Link>
       </div>
       <LessonFooter className="justify-between">{footer}</LessonFooter>
     </>

@@ -50,7 +50,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
         },
         exercises: {
           orderBy: { order: "asc" },
-          select: { id: true, question: true, type: true, options: true, audioUrl: true, order: true },
+          select: { id: true, question: true, type: true, options: true, audioUrl: true, audioText: true, order: true },
         },
         progress: {
           where: { userId: user.id },

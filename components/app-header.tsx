@@ -5,6 +5,7 @@ import { signOut, useSession } from "next-auth/react";
 import { Flame, LoaderCircle, LogOut, Star } from "lucide-react";
 import type { Session } from "next-auth";
 
+import { DesktopNav, MobileNav } from "@/components/app-nav";
 import { UserAvatar } from "@/components/user-avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,35 +23,49 @@ import { getLevelInfo, type LevelInfo } from "@/lib/gamification";
 import { getGreetingName } from "@/lib/user-display";
 import { cn } from "@/lib/utils";
 
+interface AppHeaderProps {
+  /** Có tiêu đề: dùng cho các trang Luyện tập, Xếp hạng. Không có: lời chào như trang chủ của thiết kế */
+  title?: string;
+  subtitle?: string;
+}
+
 /**
- * Đầu trang chủ theo thiết kế: lời chào + tên bên trái, streak/XP và avatar (mở menu tài khoản) bên phải.
+ * Đầu các trang chính: lời chào (hoặc tiêu đề trang) bên trái, điều hướng ở giữa (máy tính),
+ * streak/XP và avatar (mở menu tài khoản) bên phải. Điện thoại có thêm thanh điều hướng ở đáy.
+ * Trang dùng header này cần chừa khoảng trống dưới cùng cho thanh đáy: pb-28 md:pb-16.
  */
-export function AppHeader() {
+export function AppHeader({ title, subtitle }: AppHeaderProps) {
   const { data: session, status } = useSession();
   const user = session?.user;
 
   return (
-    <header className="mx-auto flex w-full max-w-5xl items-center gap-3 px-5 pt-8 sm:px-6 sm:pt-10">
-      {status === "loading" || !user ? (
-        <>
+    <>
+      <header className="mx-auto flex w-full max-w-5xl items-center gap-3 px-5 pt-8 sm:px-6 sm:pt-10">
+        {title ? (
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-2xl font-semibold sm:text-3xl">{title}</h1>
+            {subtitle && <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>}
+          </div>
+        ) : status === "loading" || !user ? (
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-5 w-40" />
           </div>
-          <Skeleton className="size-11 rounded-full" />
-        </>
-      ) : (
-        <>
+        ) : (
           <div className="min-w-0 flex-1">
             <p className="text-sm text-muted-foreground">
               Xin chào <span aria-hidden>👋</span>
             </p>
             <p className="truncate font-heading text-lg font-semibold">{user.name?.trim() || getGreetingName(user)}</p>
           </div>
-          <UserStats user={user} />
-        </>
-      )}
-    </header>
+        )}
+
+        <DesktopNav />
+
+        {status === "loading" || !user ? <Skeleton className="size-11 rounded-full" /> : <UserStats user={user} />}
+      </header>
+      <MobileNav />
+    </>
   );
 }
 

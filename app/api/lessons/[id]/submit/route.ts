@@ -89,6 +89,10 @@ export async function POST(request: Request, { params }: RouteContext) {
         select: { streak: true, lastActiveAt: true },
       });
       const xpEarned = isFirstCompletion ? lesson.xpReward : 0;
+      // Ghi lại để tính bảng xếp hạng tuần
+      if (xpEarned > 0) {
+        await tx.activity.create({ data: { userId: user.id, type: "LESSON", xpEarned, lessonId } });
+      }
 
       const updated = await tx.user.update({
         where: { id: user.id },

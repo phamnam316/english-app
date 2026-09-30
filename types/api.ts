@@ -2,7 +2,7 @@
  * Type của dữ liệu các API trả về. Dùng chung cho frontend (fetch, React Query...)
  * để gọi API có kiểm tra kiểu đầy đủ.
  */
-import type { Level, ProgressStatus, QuizType, Role } from "@prisma/client";
+import type { Level, PracticeMode, ProgressStatus, QuizType, Role } from "@prisma/client";
 import type { ChatFeedback, GrammarCorrection } from "@/lib/ai";
 
 // ---------------------------------------------------------------------------
@@ -83,8 +83,11 @@ export interface ExerciseItem {
   id: string;
   question: string;
   type: QuizType;
+  /** WORD_ORDER: các thẻ từ (đã xáo) để xếp thành câu */
   options: string[] | null;
   audioUrl: string | null;
+  /** Câu cho giọng máy đọc khi không có audioUrl (bài nghe) */
+  audioText: string | null;
   order: number;
 }
 
@@ -202,4 +205,74 @@ export interface TextToSpeechRequest {
   voice?: "alloy" | "echo";
   /** 0.5 - 1.5, mặc định 1 */
   speed?: number;
+}
+
+// ---------------------------------------------------------------------------
+// GET/POST /api/practice
+// ---------------------------------------------------------------------------
+
+export interface PracticeWord {
+  id: string;
+  word: string;
+  phonetic: string | null;
+  meaning: string;
+  exampleSentence: string | null;
+  audioUrl: string | null;
+}
+
+export interface PracticeStats {
+  /** XP đã nhận từ luyện tập hôm nay */
+  todayXp: number;
+  dailyXpCap: number;
+  /** Điểm cao nhất theo từng trò chơi */
+  bestScores: Partial<Record<PracticeMode, number>>;
+}
+
+export interface PracticeDataResponse {
+  /** Từ vựng của các bài đã mở khóa (đã học xong hoặc đang học) */
+  words: PracticeWord[];
+  stats: PracticeStats;
+}
+
+export interface PracticeResultRequest {
+  mode: PracticeMode;
+  /** Số câu đúng */
+  correct: number;
+  /** Số câu đã làm */
+  total: number;
+  /** Điểm để tính kỷ lục (trò tính giờ: số câu đúng trong 60 giây) */
+  score: number;
+}
+
+export interface PracticeResultResponse {
+  xpEarned: number;
+  totalXp: number;
+  newStreak: number;
+  todayXp: number;
+  dailyXpCap: number;
+  bestScore: number;
+  isNewBest: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/leaderboard?period=week|all
+// ---------------------------------------------------------------------------
+
+export type LeaderboardPeriod = "week" | "all";
+
+export interface LeaderboardEntry {
+  rank: number;
+  name: string;
+  image: string | null;
+  xp: number;
+  streak: number;
+  isMe: boolean;
+}
+
+export interface LeaderboardResponse {
+  period: LeaderboardPeriod;
+  /** Top 20 */
+  entries: LeaderboardEntry[];
+  /** Hạng của user hiện tại khi không nằm trong top; null nếu chưa có XP */
+  me: LeaderboardEntry | null;
 }

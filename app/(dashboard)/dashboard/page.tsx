@@ -1,16 +1,19 @@
 "use client";
 
+import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { BookOpen } from "lucide-react";
+import { ArrowRight, BookOpen } from "lucide-react";
 
 import { AppHeader } from "@/components/app-header";
 import { ContinuePanel } from "@/components/dashboard/continue-panel";
 import { CourseCard } from "@/components/dashboard/course-card";
 import { ContinuePanelSkeleton, CourseGridSkeleton } from "@/components/dashboard/dashboard-skeleton";
 import { ErrorState } from "@/components/error-state";
+import { PracticeModeMiniCard } from "@/components/practice/practice-mode-card";
 import { useApiQuery } from "@/hooks/use-api-query";
 import { api } from "@/lib/api-client";
 import { getCourseStatus } from "@/lib/course-progress";
+import { PRACTICE_MODES } from "@/lib/practice";
 import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
@@ -26,7 +29,7 @@ export default function DashboardPage() {
     <>
       <AppHeader />
 
-      <main className="mx-auto w-full max-w-5xl px-5 pt-6 pb-16 sm:px-6 sm:pt-8">
+      <main className="mx-auto w-full max-w-5xl px-5 pt-6 pb-28 sm:px-6 sm:pt-8 md:pb-16">
         <div className="space-y-2">
           <h1 className="text-[2rem] leading-[1.2] font-medium sm:text-5xl sm:leading-[1.15]">
             Sẵn sàng cho
@@ -78,6 +81,27 @@ export default function DashboardPage() {
             )}
           </section>
         </div>
+
+        <section aria-labelledby="practice-heading" className="mt-10 space-y-4">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 id="practice-heading" className="text-lg font-semibold">
+              Luyện tập nhanh
+            </h2>
+            <Link
+              href="/practice"
+              className="inline-flex items-center gap-1 rounded-full text-sm font-medium text-primary outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            >
+              Xem tất cả
+              <ArrowRight aria-hidden className="size-4" />
+            </Link>
+          </div>
+          {/* Điện thoại: cuộn ngang; máy tính: lưới */}
+          <div className="-mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-5">
+            {PRACTICE_MODES.map((meta) => (
+              <PracticeModeMiniCard key={meta.mode} meta={meta} />
+            ))}
+          </div>
+        </section>
       </main>
     </>
   );

@@ -23,6 +23,22 @@ function daysBetween(a: Date, b: Date): number {
   return dayNumber(b) - dayNumber(a);
 }
 
+/** Việt Nam dùng UTC+7 quanh năm (không đổi giờ mùa hè) nên mốc 0:00 tính được bằng phép cộng trừ */
+const VIETNAM_OFFSET_MS = 7 * 60 * 60 * 1000;
+
+/** 0:00 hôm nay theo giờ Việt Nam */
+export function startOfVietnamDay(now = new Date()): Date {
+  return new Date(dayNumber(now) * DAY_MS - VIETNAM_OFFSET_MS);
+}
+
+/** 0:00 thứ Hai của tuần này theo giờ Việt Nam */
+export function startOfVietnamWeek(now = new Date()): Date {
+  const day = dayNumber(now);
+  // Ngày số 0 (1/1/1970) là thứ Năm -> (day + 3) % 7 = số ngày đã qua kể từ thứ Hai
+  const daysSinceMonday = (day + 3) % 7;
+  return new Date((day - daysSinceMonday) * DAY_MS - VIETNAM_OFFSET_MS);
+}
+
 /**
  * Streak để hiển thị: nếu đã bỏ lỡ trọn 1 ngày (lần học cuối trước hôm qua) thì chuỗi đã đứt -> 0.
  * DB chỉ được cập nhật khi user học bài tiếp theo, nên phải tính lại lúc đọc.

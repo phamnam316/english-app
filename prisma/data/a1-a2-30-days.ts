@@ -2,13 +2,14 @@
  * Giáo án "Tiếng Anh A1–A2 trong 30 ngày".
  *
  * - 5 chương x 6 ngày; ngày cuối mỗi chương là bài ôn tập (không có từ mới, nhiều bài tập hơn).
- * - Mỗi bài thường: 6 từ mới (thẻ từ vựng) + 5–6 bài tập (trắc nghiệm, điền từ, viết câu).
+ * - Mỗi bài thường: 6 từ mới (thẻ từ vựng) + 6–7 bài tập: trắc nghiệm, điền từ, nghe (máy đọc) và xếp thẻ từ
+ *   thành câu. Bài ôn tập có thêm câu tự nói/viết (có micro) làm thử thách.
  * - Ngữ pháp tăng dần: to be -> a/an -> have/has -> there is/are -> hiện tại đơn -> tần suất
  *   -> some/any -> hiện tại tiếp diễn -> can -> quá khứ đơn -> so sánh -> be going to.
  *
- * Quy ước: trong mc(...) đáp án đúng luôn đứng ĐẦU danh sách lựa chọn (hàm tự xáo khi seed).
+ * Quy ước: trong mc(...) và listen(...) đáp án đúng luôn đứng ĐẦU danh sách lựa chọn (hàm tự xáo khi seed).
  */
-import { fill, mc, say, v, type SeedCourse } from "./types";
+import { fill, listen, mc, order, say, v, type SeedCourse } from "./types";
 
 const REVIEW_XP = 20;
 
@@ -49,7 +50,12 @@ export const A1_A2_30_DAYS: SeedCourse = {
               "Goodbye.",
               "I'm from Vietnam.",
             ]),
-            say("Viết bằng tiếng Anh: \"Chào buổi tối.\"", "Good evening"),
+            listen(
+              "good afternoon",
+              ["good afternoon", "good evening", "good morning", "goodbye"],
+              "Nghe và chọn lời chào bạn nghe được",
+            ),
+            order("Cảm ơn bạn rất nhiều.", "Thank you very much", ["many"]),
           ],
         },
         {
@@ -67,7 +73,12 @@ export const A1_A2_30_DAYS: SeedCourse = {
             mc("I ___ from Vietnam.", ["am", "is", "are", "be"], "Chủ ngữ I luôn đi với am."),
             mc("You ___ a student.", ["are", "am", "is", "be"], "You/We/They đi với are."),
             mc("Khi gặp ai đó lần đầu, bạn nói:", ["Nice to meet you.", "Good night.", "See you later.", "Thank you."]),
-            say("Viết bằng tiếng Anh (không viết tắt): \"Tôi là người Việt Nam.\"", "I am Vietnamese"),
+            listen(
+              "Nice to meet you",
+              ["Nice to meet you", "Nice to see you", "Nice to meet them", "Nice to meet him"],
+              "Nghe và chọn câu bạn nghe được",
+            ),
+            order("Tôi là người Việt Nam.", "I am Vietnamese", ["is", "Vietnam"]),
           ],
         },
         {
@@ -90,10 +101,8 @@ export const A1_A2_30_DAYS: SeedCourse = {
             ]),
             fill("I am twenty years ___. (tuổi)", "old"),
             fill("12 = ___ (viết bằng chữ)", "twelve"),
-            say(
-              "Viết bằng tiếng Anh (không viết tắt, số viết bằng chữ): \"Tôi hai mươi tuổi.\"",
-              "I am twenty years old",
-            ),
+            listen("twelve", ["twelve", "twenty", "two", "ten"], "Nghe và chọn số bạn nghe được"),
+            order("Tôi hai mươi tuổi.", "I am twenty years old", ["twelve", "is"]),
           ],
         },
         {
@@ -115,7 +124,8 @@ export const A1_A2_30_DAYS: SeedCourse = {
             mc("He is ___ doctor.", ["a", "an", "are", "am"], "Dùng a trước từ bắt đầu bằng phụ âm: a doctor."),
             mc("\"Y tá\" là:", ["nurse", "doctor", "teacher", "engineer"]),
             fill("What is your ___? – I am a teacher. (nghề nghiệp)", "job"),
-            say("Viết bằng tiếng Anh (không viết tắt): \"Anh ấy là giáo viên.\"", "He is a teacher"),
+            listen("engineer", ["engineer", "teacher", "doctor", "nurse"]),
+            order("Anh ấy là giáo viên.", "He is a teacher", ["an", "She"]),
           ],
         },
         {
@@ -141,7 +151,12 @@ export const A1_A2_30_DAYS: SeedCourse = {
               ["boxes", "boxs", "boxies", "box"],
               "Danh từ tận cùng bằng -s, -x, -ch, -sh thêm -es.",
             ),
-            say("Viết bằng tiếng Anh (không viết tắt): \"Đây là cặp của tôi.\"", "This is my bag"),
+            listen(
+              "Those chairs are old",
+              ["Those chairs are old", "These chairs are old", "Those chairs are new", "That chair is old"],
+              "Nghe và chọn câu bạn nghe được",
+            ),
+            order("Đây là cặp của tôi.", "This is my bag", ["That", "bags"]),
           ],
         },
         {
@@ -155,7 +170,7 @@ export const A1_A2_30_DAYS: SeedCourse = {
             mc("Số 20 đọc là:", ["twenty", "twelve", "two", "twenty-two"]),
             mc("Where are you from?", ["I am from Vietnam.", "I am twenty.", "I am a student.", "My name is Lan."]),
             fill("___ are my books. (những vật ở gần)", "These"),
-            mc("\"Kỹ sư\" là:", ["engineer", "office", "doctor", "job"]),
+            listen("student", ["student", "teacher", "doctor", "nurse"]),
             say("Viết bằng tiếng Anh: \"Rất vui được gặp bạn.\"", "Nice to meet you"),
           ],
         },
@@ -187,7 +202,8 @@ export const A1_A2_30_DAYS: SeedCourse = {
             mc("I ___ one sister.", ["have", "has", "am", "is"]),
             mc("\"Bố mẹ\" là:", ["parents", "grandparents", "brothers", "sisters"]),
             fill("My father's mother is my ___. (bà)", "grandmother"),
-            say("Viết bằng tiếng Anh: \"Tôi có hai anh trai.\"", "I have two brothers"),
+            listen("grandmother", ["grandmother", "mother", "grandfather", "brother"]),
+            order("Tôi có hai anh trai.", "I have two brothers", ["has", "brother"]),
           ],
         },
         {
@@ -205,7 +221,12 @@ export const A1_A2_30_DAYS: SeedCourse = {
             mc("Nam and Minh are brothers. ___ father is a doctor.", ["Their", "His", "Her", "Our"]),
             mc("Trái nghĩa với \"tall\" là:", ["short", "young", "kind", "old"]),
             fill("We love ___ teacher. (của chúng tôi)", "our"),
-            say("Viết bằng tiếng Anh: \"Mẹ tôi rất tốt bụng.\"", "My mother is very kind"),
+            listen(
+              "Her hair is short",
+              ["Her hair is short", "His hair is short", "Her hair is long", "Her eyes are small"],
+              "Nghe và chọn câu bạn nghe được",
+            ),
+            order("Mẹ tôi rất tốt bụng.", "My mother is very kind", ["Her", "are"]),
           ],
         },
         {
@@ -227,7 +248,8 @@ export const A1_A2_30_DAYS: SeedCourse = {
             mc("There ___ three bedrooms in my house.", ["are", "is", "am", "be"]),
             mc("\"Nhà bếp\" là:", ["kitchen", "bathroom", "bedroom", "living room"]),
             fill("___ is a TV in my bedroom. (Có)", "There"),
-            say("Viết bằng tiếng Anh: \"Có hai phòng ngủ trong nhà tôi.\"", "There are two bedrooms in my house"),
+            listen("kitchen", ["kitchen", "chicken", "bathroom", "bedroom"]),
+            order("Có hai phòng ngủ trong nhà tôi.", "There are two bedrooms in my house", ["is", "on"]),
           ],
         },
         {
@@ -245,7 +267,8 @@ export const A1_A2_30_DAYS: SeedCourse = {
             mc("Quyển sách nằm TRÊN mặt bàn: The book is ___ the table.", ["on", "in", "under", "between"]),
             mc("\"Bên cạnh\" là:", ["next to", "between", "behind", "under"]),
             fill("The bank is ___ the school and the park. (ở giữa)", "between"),
-            say("Viết bằng tiếng Anh: \"Cái cặp ở trên ghế.\"", "The bag is on the chair"),
+            listen("between", ["between", "behind", "next to", "under"]),
+            order("Cái cặp ở trên ghế.", "The bag is on the chair", ["under", "in"]),
           ],
         },
         {
@@ -267,7 +290,8 @@ export const A1_A2_30_DAYS: SeedCourse = {
               "Tính từ (màu sắc) đứng trước danh từ: a red car.",
             ),
             fill("Snow is ___. (trắng)", "white"),
-            say("Viết bằng tiếng Anh: \"Con mèo của tôi màu đen.\"", "My cat is black"),
+            listen("yellow", ["yellow", "white", "blue", "red"], "Nghe và chọn màu bạn nghe được"),
+            order("Con mèo của tôi màu đen.", "My cat is black", ["white", "a"]),
           ],
         },
         {
@@ -279,7 +303,16 @@ export const A1_A2_30_DAYS: SeedCourse = {
             mc("Mai is my sister. ___ eyes are black.", ["Her", "His", "Its", "Their"]),
             mc("There ___ two windows in my room.", ["are", "is", "am", "has"]),
             fill("The shoes are ___ the bed. (ở dưới)", "under"),
-            mc("\"Phòng tắm\" là:", ["bathroom", "bedroom", "kitchen", "room"]),
+            listen(
+              "There is a sofa in the living room",
+              [
+                "There is a sofa in the living room",
+                "There is a sofa in the bedroom",
+                "There are sofas in the living room",
+                "There is a table in the living room",
+              ],
+              "Nghe và chọn câu bạn nghe được",
+            ),
             mc("Chọn câu đúng:", [
               "She has a blue bag.",
               "She has a bag blue.",
@@ -318,10 +351,12 @@ export const A1_A2_30_DAYS: SeedCourse = {
             ),
             mc("\"Bây giờ là mấy giờ?\" là:", ["What time is it?", "How old are you?", "What is it?", "How are you?"]),
             fill("One ___ has sixty minutes. (tiếng đồng hồ)", "hour"),
-            say(
-              "Viết bằng tiếng Anh (không viết tắt, số viết bằng chữ): \"Bây giờ là 8 giờ đúng.\"",
-              "It is eight o'clock",
+            listen(
+              "half past six",
+              ["half past six", "half past seven", "six o'clock", "a quarter past six"],
+              "Nghe và chọn giờ bạn nghe được",
             ),
+            order("Bây giờ là 8 giờ đúng.", "It is eight o'clock", ["half", "past"]),
           ],
         },
         {
@@ -343,10 +378,8 @@ export const A1_A2_30_DAYS: SeedCourse = {
             mc("\"Đi ngủ\" là:", ["go to bed", "get up", "go to work", "have lunch"]),
             fill("We ___ lunch at school. (ăn)", "have"),
             mc("They ___ to work by bus.", ["go", "goes", "going", "is go"]),
-            say(
-              "Viết bằng tiếng Anh (số viết bằng chữ, có o'clock): \"Tôi đi ngủ lúc 10 giờ.\"",
-              "I go to bed at ten o'clock",
-            ),
+            listen("have breakfast", ["have breakfast", "have lunch", "go to bed", "get up"]),
+            order("Tôi đi ngủ lúc 10 giờ.", "I go to bed at ten o'clock", ["get", "up"]),
           ],
         },
         {
@@ -373,7 +406,17 @@ export const A1_A2_30_DAYS: SeedCourse = {
               "Phủ định với he/she/it: doesn't + động từ nguyên mẫu.",
             ),
             fill("___ she work in an office? (Cô ấy có … không?)", "Does"),
-            say("Viết bằng tiếng Anh: \"Anh ấy chơi bóng đá.\"", "He plays football"),
+            listen(
+              "She watches TV every evening",
+              [
+                "She watches TV every evening",
+                "She watch TV every evening",
+                "He watches TV every evening",
+                "She watches TV every morning",
+              ],
+              "Nghe và chọn câu bạn nghe được",
+            ),
+            order("Anh ấy chơi bóng đá.", "He plays football", ["play", "She"]),
           ],
         },
         {
@@ -400,7 +443,8 @@ export const A1_A2_30_DAYS: SeedCourse = {
             ]),
             mc("\"Không bao giờ\" là:", ["never", "sometimes", "often", "always"]),
             fill("I study English every ___. (ngày)", "day"),
-            say("Viết bằng tiếng Anh: \"Tôi thỉnh thoảng xem TV.\"", "I sometimes watch TV"),
+            listen("usually", ["usually", "always", "sometimes", "often"]),
+            order("Tôi thỉnh thoảng xem TV.", "I sometimes watch TV", ["never", "watches"]),
           ],
         },
         {
@@ -422,7 +466,8 @@ export const A1_A2_30_DAYS: SeedCourse = {
             mc("The film starts ___ eight o'clock.", ["at", "on", "in", "to"]),
             mc("She reads books ___ the evening.", ["in", "on", "at", "to"]),
             mc("Ngày sau thứ Bảy là:", ["Sunday", "Monday", "Friday", "Saturday"]),
-            say("Viết bằng tiếng Anh: \"Tôi học tiếng Anh vào buổi sáng.\"", "I study English in the morning"),
+            listen("Saturday", ["Saturday", "Sunday", "Monday", "Thursday"]),
+            order("Tôi học tiếng Anh vào buổi sáng.", "I study English in the morning", ["on", "evening"]),
           ],
         },
         {
@@ -430,7 +475,11 @@ export const A1_A2_30_DAYS: SeedCourse = {
           xp: REVIEW_XP,
           vocab: [],
           exercises: [
-            mc("8:30 đọc là:", ["half past eight", "half past nine", "eight o'clock", "a quarter past eight"]),
+            listen(
+              "a quarter past eight",
+              ["a quarter past eight", "half past eight", "eight o'clock", "a quarter to eight"],
+              "Nghe và chọn giờ bạn nghe được",
+            ),
             mc("He ___ breakfast at seven.", ["has", "have", "haves", "having"]),
             mc("My brother ___ football every Sunday.", ["plays", "play", "playing", "is play"]),
             mc("___ your mother work in a hospital?", ["Does", "Do", "Is", "Are"]),
@@ -472,7 +521,8 @@ export const A1_A2_30_DAYS: SeedCourse = {
               "some dùng với danh từ không đếm được hoặc số nhiều, trong câu khẳng định và lời mời/xin.",
             ),
             fill("one apple → three ___", "apples"),
-            say("Viết bằng tiếng Anh: \"Tôi ăn cơm mỗi ngày.\"", "I eat rice every day"),
+            listen("bread", ["bread", "bed", "red", "egg"]),
+            order("Tôi ăn cơm mỗi ngày.", "I eat rice every day", ["eats", "an"]),
           ],
         },
         {
@@ -499,10 +549,17 @@ export const A1_A2_30_DAYS: SeedCourse = {
               "I want tea now.",
             ]),
             fill("Can I have the ___, please? (hóa đơn)", "bill"),
-            say(
-              "Viết bằng tiếng Anh (không viết tắt, dùng would like và a cup of): \"Tôi muốn một tách cà phê.\"",
-              "I would like a cup of coffee",
+            listen(
+              "Can I have the bill, please?",
+              [
+                "Can I have the bill, please?",
+                "Can I have the menu, please?",
+                "Can I see the bill, please?",
+                "Can I have a bill, please?",
+              ],
+              "Nghe và chọn câu bạn nghe được",
             ),
+            order("Tôi muốn một tách cà phê.", "I would like a cup of coffee", ["want", "tea"]),
           ],
         },
         {
@@ -528,7 +585,8 @@ export const A1_A2_30_DAYS: SeedCourse = {
             ),
             mc("Trái nghĩa với \"cheap\" là:", ["expensive", "price", "money", "buy"]),
             fill("I want to ___ a new phone. (mua)", "buy"),
-            say("Viết bằng tiếng Anh: \"Cái túi này bao nhiêu tiền?\"", "How much is this bag"),
+            listen("expensive", ["expensive", "cheap", "price", "money"]),
+            order("Cái túi này bao nhiêu tiền?", "How much is this bag", ["many", "are"]),
           ],
         },
         {
@@ -554,7 +612,17 @@ export const A1_A2_30_DAYS: SeedCourse = {
               "Động từ 1 âm tiết tận cùng phụ âm-nguyên âm-phụ âm thì gấp đôi phụ âm cuối: run → running.",
             ),
             fill("I am ___ jeans today. (mặc, dạng V-ing)", "wearing"),
-            say("Viết bằng tiếng Anh (không viết tắt): \"Anh ấy đang mặc áo khoác.\"", "He is wearing a jacket"),
+            listen(
+              "She is wearing a red dress",
+              [
+                "She is wearing a red dress",
+                "She wears a red dress",
+                "She is wearing a red shirt",
+                "He is wearing a red dress",
+              ],
+              "Nghe và chọn câu bạn nghe được",
+            ),
+            order("Anh ấy đang mặc áo khoác.", "He is wearing a jacket", ["wears", "shirt"]),
           ],
         },
         {
@@ -576,7 +644,8 @@ export const A1_A2_30_DAYS: SeedCourse = {
             mc("I like ___ books.", ["reading", "reads", "readed", "to reading"], "like + V-ing: thích làm gì."),
             mc("Can you swim? – No, I ___.", ["can't", "don't", "am not", "doesn't"]),
             fill("My mother ___ cook very well. (có thể)", "can"),
-            say("Viết bằng tiếng Anh: \"Tôi có thể đi xe đạp.\"", "I can ride a bike"),
+            listen("swim", ["swim", "sing", "dance", "draw"]),
+            order("Tôi có thể đi xe đạp.", "I can ride a bike", ["can't", "riding"]),
           ],
         },
         {
@@ -589,7 +658,7 @@ export const A1_A2_30_DAYS: SeedCourse = {
             mc("How ___ is the jacket?", ["much", "many", "old", "any"]),
             mc("Look! The children ___ in the garden.", ["are playing", "play", "plays", "is playing"]),
             fill("He can ___ fast. (bơi)", "swim"),
-            mc("\"Đắt\" là:", ["expensive", "cheap", "price", "bill"]),
+            listen("jacket", ["jacket", "jeans", "shirt", "dress"]),
             fill("She likes ___ pictures. (vẽ, dạng V-ing)", "drawing"),
             say("Viết bằng tiếng Anh (dùng don't): \"Tôi không thích cà phê.\"", "I don't like coffee"),
           ],
@@ -618,9 +687,21 @@ export const A1_A2_30_DAYS: SeedCourse = {
             mc("They ___ tired last night.", ["were", "was", "are", "is"], "Quá khứ của are là were."),
             mc("Where ___ you born?", ["were", "was", "are", "did"]),
             fill("She was a teacher five years ___. (cách đây)", "ago"),
-            say(
-              "Viết bằng tiếng Anh (không viết tắt, bắt đầu bằng I): \"Hôm qua tôi rất mệt.\"",
+            listen(
+              "They were happy last week",
+              [
+                "They were happy last week",
+                "They are happy this week",
+                "They were tired last week",
+                "They were happy last night",
+              ],
+              "Nghe và chọn câu bạn nghe được",
+            ),
+            order(
+              "Hôm qua tôi rất mệt.",
               "I was very tired yesterday",
+              ["were", "am"],
+              "Từ chỉ thời gian như yesterday thường đứng cuối câu.",
             ),
           ],
         },
@@ -643,7 +724,8 @@ export const A1_A2_30_DAYS: SeedCourse = {
               "Phủ định quá khứ: didn't + động từ nguyên mẫu.",
             ),
             fill("___ you watch TV last night? (trợ động từ quá khứ)", "Did"),
-            say("Viết bằng tiếng Anh: \"Chúng tôi ở nhà tối qua.\"", "We stayed at home last night"),
+            listen("walked", ["walked", "watched", "worked", "wanted"]),
+            order("Chúng tôi ở nhà tối qua.", "We stayed at home last night", ["stay", "in"]),
           ],
         },
         {
@@ -661,7 +743,22 @@ export const A1_A2_30_DAYS: SeedCourse = {
             mc("Yesterday I ___ a new bag.", ["bought", "buyed", "buy", "buys"]),
             mc("Did you see the film? – Yes, I ___ it last night.", ["saw", "see", "seed", "seen"]),
             fill("We ___ rice and fish for lunch. (quá khứ của eat)", "ate"),
-            say("Viết bằng tiếng Anh: \"Cô ấy đã mua một chiếc váy mới.\"", "She bought a new dress"),
+            listen(
+              "I saw a good film yesterday",
+              [
+                "I saw a good film yesterday",
+                "I see a good film every day",
+                "I saw a good film today",
+                "I saw a good film last week",
+              ],
+              "Nghe và chọn câu bạn nghe được",
+            ),
+            order(
+              "Cô ấy đã mua một chiếc váy mới.",
+              "She bought a new dress",
+              ["buyed", "buys"],
+              "buy là động từ bất quy tắc: buy → bought.",
+            ),
           ],
         },
         {
@@ -687,10 +784,8 @@ export const A1_A2_30_DAYS: SeedCourse = {
             ),
             mc("So sánh hơn của \"good\" là:", ["better", "gooder", "more good", "best"]),
             fill("Russia is ___ than Vietnam. (to hơn)", "bigger", "big → bigger: gấp đôi phụ âm cuối rồi thêm -er."),
-            say(
-              "Viết bằng tiếng Anh (kết thúc bằng than me): \"Chị tôi cao hơn tôi.\"",
-              "My sister is taller than me",
-            ),
+            listen("beautiful", ["beautiful", "bigger", "fastest", "better"]),
+            order("Chị tôi cao hơn tôi.", "My sister is taller than me", ["tallest", "more"]),
           ],
         },
         {
@@ -717,10 +812,17 @@ export const A1_A2_30_DAYS: SeedCourse = {
               "We are travelling now.",
             ]),
             fill("She is going to buy a train ___. (vé)", "ticket"),
-            say(
-              "Viết bằng tiếng Anh (không viết tắt, dùng be going to): \"Chúng tôi định ở khách sạn.\"",
-              "We are going to stay in a hotel",
+            listen(
+              "They are going to swim at the beach",
+              [
+                "They are going to swim at the beach",
+                "They are going to swim at the pool",
+                "They are swimming at the beach",
+                "They went to swim at the beach",
+              ],
+              "Nghe và chọn câu bạn nghe được",
             ),
+            order("Chúng tôi định ở khách sạn.", "We are going to stay in a hotel", ["will", "stays"]),
           ],
         },
         {
@@ -728,11 +830,15 @@ export const A1_A2_30_DAYS: SeedCourse = {
           xp: 30,
           vocab: [],
           exercises: [
-            mc("She ___ a doctor.", ["is", "am", "are", "be"]),
+            listen(
+              "She is a doctor",
+              ["She is a doctor", "She was a doctor", "He is a doctor", "She is a teacher"],
+              "Nghe và chọn câu bạn nghe được",
+            ),
             mc("There ___ three apples on the table.", ["are", "is", "am", "be"]),
             mc("He ___ to work every day.", ["goes", "go", "going", "is go"]),
             mc("Look! It ___.", ["is raining", "rains", "rain", "rained"]),
-            mc("I ___ to Hanoi last year.", ["went", "go", "goes", "going"]),
+            order("Tôi đã đến Hà Nội năm ngoái.", "I went to Hanoi last year", ["go", "goes"]),
             fill("Is there ___ milk? (some/any)", "any"),
             mc("My bag is ___ than your bag.", ["bigger", "biggest", "more big", "big"]),
             fill("We are going ___ visit Hue next month.", "to"),

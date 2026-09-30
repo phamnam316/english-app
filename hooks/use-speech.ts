@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { api, isAbortError } from "@/lib/api-client";
+import { api, isAbortError, toApiClientError } from "@/lib/api-client";
 
 export interface SpeakOptions {
   /** 1 = bình thường, 0.75 = chậm cho người mới */
@@ -18,6 +18,12 @@ export interface SpeakOptions {
  * không gọi lại API TTS (đỡ độ trễ và đỡ tốn tiền).
  */
 const audioUrlCache = new Map<string, string>();
+
+/**
+ * Server trả 503 = chưa cấu hình TTS (thiếu OPENAI_API_KEY): nhớ lại trong phiên để các lần sau
+ * dùng thẳng giọng đọc của trình duyệt, không phải chờ gọi API thất bại ở mỗi lần bấm nghe.
+ */
+let serverTtsUnavailable = false;
 
 function speakWithBrowserVoice(text: string, speed: number): boolean {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
@@ -54,6 +60,10 @@ export function useSpeech() {
 
       try {
         let url = audioUrl ?? audioUrlCache.get(key);
+        if (!url && serverTtsUnavailable) {
+          if (!speakWithBrowserVoice(text, speed)) toast.error("Không phát được âm thanh. Vui lòng thử lại.");
+          return;
+        }
         if (!url) {
           const controller = new AbortController();
           controllerRef.current = controller;
@@ -70,6 +80,7 @@ export function useSpeech() {
         await audioRef.current.play();
       } catch (error) {
         if (isAbortError(error)) return;
+        if (toApiClientError(error).status === 503) serverTtsUnavailable = true;
         if (!speakWithBrowserVoice(text, speed)) {
           toast.error("Không phát được âm thanh. Vui lòng thử lại.");
         }

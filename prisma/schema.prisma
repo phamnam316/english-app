@@ -26,8 +26,26 @@ enum Level {
 enum QuizType {
   MULTIPLE_CHOICE
   FILL_IN_BLANK
+  /// Nghe (audioUrl hoặc giọng máy đọc audioText) rồi chọn/viết đáp án
   LISTENING
+  /// Nói (micro) hoặc viết lại câu
   SPEAKING
+  /// Sắp xếp các thẻ từ (options) thành câu đúng
+  WORD_ORDER
+}
+
+/// Các trò chơi trong trang Luyện tập
+enum PracticeMode {
+  MATCH
+  SPEED
+  DICTATION
+  SENTENCE
+  PRONUNCIATION
+}
+
+enum ActivityType {
+  LESSON
+  PRACTICE
 }
 
 enum ProgressStatus {
@@ -55,9 +73,10 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts Account[]
-  sessions Session[]
-  progress UserProgress[]
+  accounts   Account[]
+  sessions   Session[]
+  progress   UserProgress[]
+  activities Activity[]
 }
 
 model Account {
@@ -165,6 +184,8 @@ model Exercise {
   correctAnswer String
   explanation   String?
   audioUrl      String?
+  /// Câu cho giọng máy đọc (TTS) khi không có audioUrl, dùng cho bài nghe
+  audioText     String?
   order         Int
   lessonId      String
 
@@ -188,4 +209,28 @@ model UserProgress {
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
+}
+
+// ---------------------------------------------------------------------------
+// Hoạt động học có tính XP (bảng xếp hạng tuần, giới hạn XP luyện tập mỗi ngày, kỷ lục)
+// ---------------------------------------------------------------------------
+
+/// 1 dòng = hoàn thành 1 bài lần đầu (LESSON) hoặc 1 lượt luyện tập (PRACTICE, có thể 0 XP khi đã chạm giới hạn ngày)
+model Activity {
+  id        String        @id @default(cuid())
+  userId    String
+  type      ActivityType
+  xpEarned  Int           @default(0)
+  /// Chỉ có với PRACTICE
+  mode      PracticeMode?
+  /// Điểm của lượt luyện tập (để tính kỷ lục)
+  score     Int?
+  /// Chỉ có với LESSON
+  lessonId  String?
+  createdAt DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
 }

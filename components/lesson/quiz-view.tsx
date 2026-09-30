@@ -1,15 +1,21 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
-import { Check, Headphones, LoaderCircle, X } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Check, Headphones, LoaderCircle, Mic, Snail, Square, Volume2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useShallow } from "zustand/react/shallow";
 
 import { FeedbackBanner } from "@/components/lesson/feedback-banner";
+import { WordChips } from "@/components/word-chips";
 import { LessonFooter } from "@/components/lesson/lesson-footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSpeech } from "@/hooks/use-speech";
+import {
+  RECOGNITION_ERROR_MESSAGES,
+  SpeechRecognitionError,
+  useSpeechRecognition,
+} from "@/hooks/use-speech-recognition";
 import { toApiClientError } from "@/lib/api-client";
 import { isInsideDialog, isInteractiveTarget, isTypingTarget } from "@/lib/dom";
 import { isAnswerCorrect } from "@/lib/scoring";
@@ -19,7 +25,7 @@ import { cn } from "@/lib/utils";
 import { useLessonStore } from "@/store/useLessonStore";
 import type { CheckAnswerResponse } from "@/types/api";
 
-/** Phần 2 của bài: làm bài tập (trắc nghiệm / điền từ), kiểm tra từng câu và xem phản hồi ngay */
+/** Phần 2 của bài: làm bài tập (trắc nghiệm, điền từ, nghe, xếp câu, nói), kiểm tra từng câu và xem phản hồi ngay */
 export function QuizView() {
   const {
     exercises,
@@ -50,7 +56,28 @@ export function QuizView() {
   const answer = exercise ? (userAnswers[exercise.id] ?? "") : "";
   const result: CheckAnswerResponse | undefined = exercise ? results[exercise.id] : undefined;
   const options = exercise?.options && exercise.options.length > 0 ? exercise.options : null;
+  const isWordOrder = exercise?.type === "WORD_ORDER";
+  // Thẻ từ của câu xếp chữ không phải là các đáp án để chọn (không dùng phím 1-9)
+  const choiceOptions = isWordOrder ? null : options;
+  const audioText = exercise ? (exercise.audioText ?? (exercise.audioUrl ? exercise.question : null)) : null;
   const canCheck = answer.trim().length > 0 && !isChecking && !isSubmitted;
+
+  const playAudio = useCallback(
+    (speed = 1) => {
+      if (!exercise || !audioText) return;
+      void speak(audioText, { speed, audioUrl: exercise.audioUrl });
+    },
+    [audioText, exercise, speak],
+  );
+
+  // Bài nghe: tự phát 1 lần khi sang câu mới
+  const exerciseId = exercise?.id;
+  const isListeningExercise = exercise?.type === "LISTENING";
+  useEffect(() => {
+    if (isListeningExercise) playAudio();
+    // Chỉ phát lại khi đổi câu, không phát lại khi đổi trạng thái khác
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exerciseId]);
 
   const handleCheck = useCallback(async () => {
     try {
@@ -78,14 +105,14 @@ export function QuizView() {
         return;
       }
 
-      if (options && !isSubmitted && /^[1-9]$/.test(event.key)) {
-        const option = options[Number(event.key) - 1];
+      if (choiceOptions && !isSubmitted && /^[1-9]$/.test(event.key)) {
+        const option = choiceOptions[Number(event.key) - 1];
         if (option) selectOption(option);
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [canCheck, handleCheck, isSubmitted, nextQuestion, options, selectOption]);
+  }, [canCheck, choiceOptions, handleCheck, isSubmitted, nextQuestion, selectOption]);
 
   if (!exercise) return null;
 
@@ -111,23 +138,42 @@ export function QuizView() {
             <h1 className="text-2xl leading-snug font-semibold text-balance sm:text-3xl">{exercise.question}</h1>
           )}
 
-          {exercise.audioUrl && (
-            <Button
-              variant="secondary"
-              size="lg"
-              className="h-12 rounded-full px-6"
-              onClick={() => void speak(exercise.question, { audioUrl: exercise.audioUrl })}
-            >
-              <Headphones className="size-5" />
-              Nghe đoạn audio
-            </Button>
-          )}
+          {audioText &&
+            (isListeningExercise ? (
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  aria-label="Nghe lại"
+                  onClick={() => playAudio()}
+                  className="grid size-20 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_16px_30px_-12px_var(--primary)] outline-none transition-transform hover:scale-105 focus-visible:ring-[3px] focus-visible:ring-ring active:scale-95"
+                >
+                  <Volume2 className="size-9" />
+                </button>
+                <Button variant="secondary" size="lg" className="rounded-full" onClick={() => playAudio(0.7)}>
+                  <Snail className="size-5" />
+                  Nghe chậm
+                </Button>
+              </div>
+            ) : (
+              <Button variant="secondary" size="lg" className="h-12 rounded-full px-6" onClick={() => playAudio()}>
+                <Headphones className="size-5" />
+                Nghe đoạn audio
+              </Button>
+            ))}
         </div>
 
         <div className="mt-8">
-          {options ? (
+          {isWordOrder && options ? (
+            <WordOrderAnswer
+              key={exercise.id}
+              chips={options}
+              result={isSubmitted ? result : undefined}
+              disabled={isSubmitted || isChecking}
+              onChange={selectOption}
+            />
+          ) : choiceOptions ? (
             <OptionList
-              options={options}
+              options={choiceOptions}
               answer={answer}
               result={isSubmitted ? result : undefined}
               disabled={isSubmitted || isChecking}
@@ -136,6 +182,7 @@ export function QuizView() {
           ) : (
             <TextAnswer
               key={exercise.id}
+              allowSpeech={exercise.type === "SPEAKING"}
               answer={answer}
               result={isSubmitted ? result : undefined}
               disabled={isSubmitted || isChecking}
@@ -267,6 +314,8 @@ function OptionList({ options, answer, result, disabled, onSelect }: OptionListP
 }
 
 interface TextAnswerProps {
+  /** Câu nói: có thêm nút micro, nói xong câu nhận dạng được điền vào ô (vẫn sửa được trước khi kiểm tra) */
+  allowSpeech?: boolean;
   answer: string;
   result: CheckAnswerResponse | undefined;
   disabled: boolean;
@@ -274,37 +323,100 @@ interface TextAnswerProps {
   onSubmit: () => void;
 }
 
-function TextAnswer({ answer, result, disabled, onChange, onSubmit }: TextAnswerProps) {
+function TextAnswer({ allowSpeech = false, answer, result, disabled, onChange, onSubmit }: TextAnswerProps) {
+  const { isSupported, isListening, listen, stop } = useSpeechRecognition();
+  const canSpeak = allowSpeech && isSupported;
+
+  const record = async () => {
+    if (isListening) {
+      stop();
+      return;
+    }
+    try {
+      const [best] = await listen();
+      if (best) onChange(best.trim());
+      else toast.info(RECOGNITION_ERROR_MESSAGES["no-speech"]);
+    } catch (error) {
+      if (error instanceof SpeechRecognitionError && error.code !== "aborted") {
+        toast.error(RECOGNITION_ERROR_MESSAGES[error.code]);
+      }
+    }
+  };
+
   return (
     <div className="space-y-2">
       <label htmlFor="quiz-answer" className="text-sm font-medium text-muted-foreground">
-        Câu trả lời của bạn
+        {canSpeak ? "Bấm micro để nói, hoặc gõ câu trả lời" : "Câu trả lời của bạn"}
       </label>
-      <Input
-        id="quiz-answer"
-        autoFocus
-        value={answer}
-        disabled={disabled}
-        maxLength={200}
-        placeholder="Nhập câu trả lời"
-        autoComplete="off"
-        autoCapitalize="none"
-        autoCorrect="off"
-        spellCheck={false}
-        enterKeyHint="done"
-        onChange={(event) => onChange(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            event.preventDefault();
-            onSubmit();
-          }
-        }}
-        className={cn(
-          "h-14 rounded-2xl border-2 bg-card px-4 text-lg font-medium shadow-soft md:text-lg disabled:opacity-100",
-          result?.isCorrect && "border-success bg-success-soft text-success",
-          result && !result.isCorrect && "border-destructive bg-danger-soft text-destructive line-through decoration-2",
+      <div className="flex gap-2">
+        <Input
+          id="quiz-answer"
+          autoFocus={!canSpeak}
+          value={answer}
+          disabled={disabled}
+          maxLength={200}
+          placeholder={isListening ? "Đang nghe…" : "Nhập câu trả lời"}
+          autoComplete="off"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          enterKeyHint="done"
+          onChange={(event) => onChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              onSubmit();
+            }
+          }}
+          className={cn(
+            "h-14 flex-1 rounded-2xl border-2 bg-card px-4 text-lg font-medium shadow-soft md:text-lg disabled:opacity-100",
+            result?.isCorrect && "border-success bg-success-soft text-success",
+            result && !result.isCorrect && "border-destructive bg-danger-soft text-destructive line-through decoration-2",
+          )}
+        />
+        {canSpeak && !disabled && (
+          <button
+            type="button"
+            onClick={() => void record()}
+            aria-label={isListening ? "Dừng nghe" : "Nói câu trả lời"}
+            className={cn(
+              "relative grid size-14 shrink-0 place-items-center rounded-2xl outline-none transition-transform focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-95",
+              isListening ? "bg-destructive text-white" : "bg-primary text-primary-foreground",
+            )}
+          >
+            {isListening && (
+              <span aria-hidden className="absolute inset-0 animate-ping rounded-2xl bg-destructive/40 motion-reduce:animate-none" />
+            )}
+            {isListening ? <Square className="size-5 fill-current" /> : <Mic className="size-6" />}
+          </button>
         )}
-      />
+      </div>
     </div>
+  );
+}
+
+interface WordOrderAnswerProps {
+  chips: string[];
+  result: CheckAnswerResponse | undefined;
+  disabled: boolean;
+  /** Câu ghép được (các thẻ nối bằng dấu cách), server chấm như câu tự gõ */
+  onChange: (sentence: string) => void;
+}
+
+/** Câu xếp chữ: chạm thẻ từ để ghép câu; có thể có thẻ thừa để gây nhiễu */
+function WordOrderAnswer({ chips, result, disabled, onChange }: WordOrderAnswerProps) {
+  const [selected, setSelected] = useState<number[]>([]);
+
+  return (
+    <WordChips
+      chips={chips}
+      selected={selected}
+      disabled={disabled}
+      isCorrect={result?.isCorrect}
+      onChange={(next) => {
+        setSelected(next);
+        onChange(next.map((i) => chips[i]).join(" "));
+      }}
+    />
   );
 }

@@ -120,6 +120,23 @@ export const textToSpeechSchema = z.object({
     .default(1),
 });
 
+// ---------------------------------------------------------------------------
+// Luyện tập
+// ---------------------------------------------------------------------------
+
+export const PRACTICE_MODE_VALUES = ["MATCH", "SPEED", "DICTATION", "SENTENCE", "PRONUNCIATION"] as const;
+
+export const practiceResultSchema = z
+  .object({
+    mode: z.enum(PRACTICE_MODE_VALUES, { error: "Trò chơi không hợp lệ." }),
+    correct: z.number({ error: "correct phải là số." }).int().min(0).max(200),
+    total: z.number({ error: "total phải là số." }).int().min(1).max(200),
+    score: z.number({ error: "score phải là số." }).int().min(0).max(1000),
+  })
+  .refine((data) => data.correct <= data.total, { error: "Số câu đúng không thể lớn hơn số câu.", path: ["correct"] });
+
+export type PracticeResultInput = z.infer<typeof practiceResultSchema>;
+
 export type CorrectGrammarInput = z.infer<typeof correctGrammarSchema>;
 export type AIChatInput = z.infer<typeof aiChatSchema>;
 export type TextToSpeechInput = z.input<typeof textToSpeechSchema>;

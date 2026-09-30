@@ -48,7 +48,8 @@ export const QUIZ_TYPE_LABEL: Record<QuizType, string> = {
   MULTIPLE_CHOICE: "Chọn đáp án đúng",
   FILL_IN_BLANK: "Điền vào chỗ trống",
   LISTENING: "Nghe và trả lời",
-  SPEAKING: "Viết lại câu bạn sẽ nói",
+  SPEAKING: "Nói hoặc viết câu",
+  WORD_ORDER: "Sắp xếp thành câu",
 };
 
 const PRAISES = ["Chính xác!", "Tuyệt vời!", "Giỏi lắm!", "Rất tốt!", "Hoàn hảo!"];

@@ -7,7 +7,12 @@ import type {
   CheckAnswerRequest,
   CheckAnswerResponse,
   CourseListResponse,
+  LeaderboardPeriod,
+  LeaderboardResponse,
   LessonDetailResponse,
+  PracticeDataResponse,
+  PracticeResultRequest,
+  PracticeResultResponse,
   RegisterResponse,
   SubmitLessonRequest,
   SubmitLessonResponse,
@@ -100,6 +105,13 @@ export const api = {
 
   submitLesson: (lessonId: string, body: SubmitLessonRequest) =>
     request<SubmitLessonResponse>(`${lessonPath(lessonId)}/submit`, postJson(body)),
+
+  getPractice: (signal?: AbortSignal) => request<PracticeDataResponse>("/api/practice", { signal }),
+
+  submitPractice: (body: PracticeResultRequest) => request<PracticeResultResponse>("/api/practice", postJson(body)),
+
+  getLeaderboard: (period: LeaderboardPeriod, signal?: AbortSignal) =>
+    request<LeaderboardResponse>(`/api/leaderboard?period=${period}`, { signal }),
 
   register: (body: { name?: string; email: string; password: string }) =>
     request<RegisterResponse>("/api/auth/register", postJson(body)),

@@ -27,5 +27,6 @@ thiếu Google thì ẩn nút đăng nhập Google, thiếu OpenAI thì nút ngh
    Neon tự thêm `DATABASE_URL` và `DATABASE_URL_UNPOOLED`.
 3. Tab **Deployments** → deploy gần nhất → **Redeploy**.
 
-Mỗi lần deploy, lệnh `vercel-build` tự cập nhật bảng (`prisma db push`) và nạp các khóa học còn thiếu (`prisma db seed`).
+Mỗi lần deploy, lệnh `vercel-build` tự cập nhật bảng (`prisma db push`) và đồng bộ nội dung khóa học (`prisma db seed`:
+tạo khóa còn thiếu, cập nhật bài đã đổi nội dung, giữ nguyên tiến độ của người học).
 Không cần đặt `NEXTAUTH_URL` trên Vercel. Code mới push lên nhánh `main` sẽ được Vercel tự deploy.
