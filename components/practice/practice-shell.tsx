@@ -6,7 +6,6 @@ import { Check, Crown, X } from "lucide-react";
 import { LessonFooter } from "@/components/lesson/lesson-footer";
 import { PracticeModeTile } from "@/components/practice/practice-mode-card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import type { PracticeModeMeta } from "@/lib/practice";
 import { cn } from "@/lib/utils";
 
@@ -21,30 +20,46 @@ interface PracticeShellProps {
   children: React.ReactNode;
 }
 
-/** Khung màn chơi: nút thoát + thanh tiến độ/thời gian, toàn màn hình như màn học bài */
+/** Khung màn chơi: nút thoát, tên trò, thanh tiến độ/thời gian; toàn màn hình như màn học bài */
 export function PracticeShell({ title, progress, progressLabel, urgent = false, children }: PracticeShellProps) {
   return (
     <div className="flex min-h-dvh flex-col overflow-x-clip bg-background">
-      <header className="sticky top-0 z-20 bg-background/85 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-3xl items-center gap-3 px-4 sm:gap-4 sm:px-6">
-          <Button asChild variant="ghost" size="icon" className="size-10 text-muted-foreground">
-            <Link href="/practice" aria-label="Thoát, về trang Luyện tập">
-              <X className="size-6" />
-            </Link>
-          </Button>
-          <Progress
-            value={progress}
-            aria-label={title}
-            className={cn("h-2.5 flex-1", urgent && "[&>*]:bg-destructive")}
-          />
-          <span
-            className={cn(
-              "min-w-12 text-right text-sm font-semibold whitespace-nowrap tabular-nums",
-              urgent ? "text-destructive" : "text-muted-foreground",
-            )}
+      <header className="sticky top-0 z-20 border-b border-line bg-background">
+        <div className="mx-auto flex h-16 max-w-[1180px] items-center gap-3 px-2 sm:gap-5 sm:px-8">
+          <Link
+            href="/practice"
+            aria-label="Thoát, về trang Luyện tập"
+            className="grid size-10 shrink-0 place-items-center rounded-md text-muted-foreground outline-none hover:bg-line/60 focus-visible:outline-2 focus-visible:outline-ring"
           >
-            {progressLabel}
-          </span>
+            <X className="size-5" />
+          </Link>
+          <p className="min-w-0 flex-1 truncate text-[15px]">
+            <span className="hidden text-muted-foreground sm:inline">Luyện tập — </span>
+            <b className="font-semibold">{title}</b>
+          </p>
+          <div className="ml-auto flex w-32 shrink-0 items-center gap-3 sm:w-64">
+            <div
+              role="progressbar"
+              aria-label={title}
+              aria-valuenow={Math.round(progress)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              className="h-[5px] flex-1 overflow-hidden rounded-full bg-line"
+            >
+              <div
+                className={cn("h-full rounded-full transition-[width] duration-300", urgent ? "bg-destructive" : "bg-moss")}
+                style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+              />
+            </div>
+            <span
+              className={cn(
+                "min-w-10 text-right text-sm font-semibold whitespace-nowrap tabular-nums",
+                urgent ? "text-destructive" : "text-muted-foreground",
+              )}
+            >
+              {progressLabel}
+            </span>
+          </div>
         </div>
       </header>
       <main className="flex flex-1 flex-col">{children}</main>
@@ -64,35 +79,35 @@ interface PracticeIntroProps {
 export function PracticeIntro({ meta, bestScore, onStart, blockedReason }: PracticeIntroProps) {
   return (
     <>
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-6 px-5 pt-4 pb-32 text-center">
-        <PracticeModeTile meta={meta} className="size-24 rounded-[1.75rem]" iconClassName="size-11" />
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold">{meta.title}</h1>
-          <p className="leading-relaxed text-muted-foreground">{meta.description}</p>
-        </div>
-        <ul className="w-full space-y-2.5 rounded-3xl bg-surface-soft p-5 text-left text-sm leading-relaxed">
-          {meta.rules.map((rule) => (
-            <li key={rule} className="flex gap-2.5">
-              <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={3} />
-              {rule}
-            </li>
-          ))}
-        </ul>
-        {meta.timed && bestScore !== null && (
-          <p className="inline-flex items-center gap-1.5 text-sm font-medium">
-            <Crown aria-hidden className="size-4 text-xp" />
-            Kỷ lục của bạn: <span className="font-semibold tabular-nums">{bestScore}</span>
-          </p>
-        )}
-        {blockedReason && (
-          <p role="alert" className="rounded-2xl bg-danger-soft px-4 py-3 text-sm font-medium text-destructive">
-            {blockedReason}
-          </p>
-        )}
+      <div className="mx-auto w-full max-w-[560px] px-4 pt-10 pb-36 sm:pt-14">
+        <section className="rounded-lg border border-line bg-card p-6 sm:p-9">
+          <PracticeModeTile meta={meta} />
+          <h1 className="mt-5 text-[2.5rem] leading-[1.05] tracking-[-0.015em]">{meta.title}</h1>
+          <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{meta.description}</p>
+          <ul className="mt-6 space-y-2.5 border-t border-line pt-5 text-[15px] leading-relaxed">
+            {meta.rules.map((rule) => (
+              <li key={rule} className="flex gap-2.5">
+                <Check aria-hidden className="mt-1 size-4 shrink-0 text-moss" strokeWidth={2.5} />
+                {rule}
+              </li>
+            ))}
+          </ul>
+          {meta.timed && bestScore !== null && bestScore > 0 && (
+            <p className="mt-5 inline-flex items-center gap-1.5 text-[15px]">
+              <Crown aria-hidden className="size-4 text-clay" />
+              Kỷ lục của bạn: <b className="font-semibold tabular-nums">{bestScore}</b>
+            </p>
+          )}
+          {blockedReason && (
+            <p role="alert" className="mt-5 rounded-md bg-danger-soft px-4 py-3 text-[14px] font-medium text-destructive">
+              {blockedReason}
+            </p>
+          )}
+        </section>
       </div>
       <LessonFooter className="justify-end">
         <Button size="lg" autoFocus className="w-full sm:w-auto sm:min-w-56" disabled={Boolean(blockedReason)} onClick={onStart}>
-          Bắt đầu
+          Bắt đầu · {meta.length}
         </Button>
       </LessonFooter>
     </>

@@ -11,7 +11,7 @@ import type { GamePhase, PracticeGameProps } from "@/components/practice/types";
 import { WordChips } from "@/components/word-chips";
 import { Button } from "@/components/ui/button";
 import { useSpeech } from "@/hooks/use-speech";
-import { sameTokens, shuffle, tokenizeSentence } from "@/lib/practice";
+import { sameTokens, shuffle, tokenizeSentence, weightedShuffle } from "@/lib/practice";
 import { playCorrectSound, playWrongSound } from "@/lib/sounds";
 import { praiseFor } from "@/lib/ui-constants";
 import { cn } from "@/lib/utils";
@@ -39,7 +39,7 @@ function scramble(tokens: string[]): string[] {
 
 export function buildSentenceItems(words: PracticeWord[]): SentenceItem[] {
   const items: SentenceItem[] = [];
-  for (const word of shuffle(words)) {
+  for (const word of weightedShuffle(words)) {
     if (!word.exampleSentence) continue;
     const tokens = tokenizeSentence(word.exampleSentence);
     if (tokens.length < MIN_TOKENS || tokens.length > MAX_TOKENS) continue;
@@ -120,16 +120,16 @@ export function SentenceGame({ meta, words, bestScore, skipIntro, onReplay, onSu
                 <Volume2 className="size-5" />
                 Nghe câu
               </Button>
-              <Button variant="secondary" size="lg" className="rounded-full" onClick={() => void speak(item.sentence, { speed: 0.7 })}>
+              <Button variant="outline" size="lg" className="rounded-full" onClick={() => void speak(item.sentence, { speed: 0.7 })}>
                 <Snail className="size-5" />
                 Chậm
               </Button>
             </div>
 
-            <p className="mx-auto mt-5 flex w-fit max-w-full items-center gap-2 rounded-full bg-surface-soft px-4 py-2 text-sm">
-              <KeyRound aria-hidden className="size-4 shrink-0 text-primary" />
+            <p className="mx-auto mt-5 flex w-fit max-w-full items-center gap-2 rounded-md border border-line bg-card px-4 py-2 text-sm">
+              <KeyRound aria-hidden className="size-4 shrink-0 text-clay" />
               <span className="truncate">
-                Có từ <span className="font-semibold text-primary">{item.word.word}</span>: {item.word.meaning}
+                Có từ <span className="font-serif text-base font-medium">{item.word.word}</span>: {item.word.meaning}
               </span>
             </p>
 
@@ -150,7 +150,7 @@ export function SentenceGame({ meta, words, bestScore, skipIntro, onReplay, onSu
               isCorrect={result}
               praise={praiseFor(index)}
               correctAnswer={item.sentence}
-              explanation={result ? item.sentence : null}
+              explanation={item.word.exampleTranslation}
               onContinue={next}
             />
           ) : (

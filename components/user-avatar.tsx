@@ -24,7 +24,7 @@ export function UserAvatar({ user, className }: UserAvatarProps) {
     <span
       aria-hidden
       className={cn(
-        "grid size-9 shrink-0 place-items-center rounded-full bg-tile-pink font-heading text-sm font-bold text-tile-foreground",
+        "grid size-9 shrink-0 place-items-center rounded-full bg-moss-soft text-[13px] font-semibold text-moss-strong",
         className,
       )}
     >

@@ -32,7 +32,13 @@ export async function getCourseSummaries({ userId, isAdmin = false }: CourseQuer
           order: true,
           lessons: {
             orderBy: { order: "asc" },
-            select: { id: true, title: true, order: true, xpReward: true },
+            select: {
+              id: true,
+              title: true,
+              order: true,
+              xpReward: true,
+              _count: { select: { vocabularies: true, exercises: true } },
+            },
           },
         },
       },
@@ -52,10 +58,16 @@ export async function getCourseSummaries({ userId, isAdmin = false }: CourseQuer
     let completedLessons = 0;
 
     const units = course.units.map((unit) => {
-      const lessons = unit.lessons.map((lesson) => {
+      const lessons = unit.lessons.map(({ _count, ...lesson }) => {
         const progress = progressByLesson.get(lesson.id);
         const status: ProgressStatus = progress?.status ?? "NOT_STARTED";
-        return { ...lesson, status, score: progress?.score ?? null };
+        return {
+          ...lesson,
+          vocabCount: _count.vocabularies,
+          exerciseCount: _count.exercises,
+          status,
+          score: progress?.score ?? null,
+        };
       });
       const unitCompleted = lessons.filter((l) => l.status === "COMPLETED").length;
       totalLessons += lessons.length;

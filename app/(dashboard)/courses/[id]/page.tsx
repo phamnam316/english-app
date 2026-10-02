@@ -1,18 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, BookOpenCheck, Play, SearchX } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
+import { AppHeader } from "@/components/app-header";
 import { CourseDetailSkeleton } from "@/components/course/course-skeleton";
-import { UnitList } from "@/components/course/unit-list";
+import { UnitCard } from "@/components/course/unit-list";
+import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
-import { HeroDecor } from "@/components/hero-decor";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useApiQuery } from "@/hooks/use-api-query";
 import { api } from "@/lib/api-client";
-import { getNextLesson, withLessonStates } from "@/lib/course-progress";
+import { getCourseStatus, getNextLesson, shortUnitTitle, withLessonStates } from "@/lib/course-progress";
 import { LEVEL_META } from "@/lib/ui-constants";
 import { cn } from "@/lib/utils";
 import type { CourseSummary } from "@/types/api";
@@ -23,102 +24,190 @@ export default function CourseDetailPage() {
   const { data, error, isLoading, refetch } = useApiQuery((signal) => api.getCourses(signal), []);
   const course = data?.courses.find((c) => c.id === id);
 
-  if (isLoading) return <CourseDetailSkeleton />;
-
-  if (error || !course) {
-    return (
-      <main className="mx-auto w-full max-w-3xl px-5 pt-6 pb-16 sm:px-6">
-        <BackLink className="mb-6 text-foreground" />
-        {error ? (
-          <ErrorState title="Không tải được khóa học" error={error} onRetry={refetch} backHref="/dashboard" />
-        ) : (
-          <div className="flex flex-col items-center gap-3 rounded-3xl bg-surface-soft px-6 py-12 text-center">
-            <SearchX className="size-8 text-muted-foreground" />
-            <h1 className="text-lg font-semibold">Không tìm thấy khóa học</h1>
-            <p className="text-sm text-muted-foreground">Khóa học có thể đã bị ẩn hoặc đường dẫn không đúng.</p>
-            <Button asChild variant="outline" className="mt-2">
-              <Link href="/dashboard">Về trang chủ</Link>
-            </Button>
-          </div>
-        )}
-      </main>
+  let content: React.ReactNode;
+  if (isLoading) content = <CourseDetailSkeleton />;
+  else if (error) {
+    content = <ErrorState title="Không tải được khóa học" error={error} onRetry={refetch} backHref="/dashboard" />;
+  } else if (!course) {
+    content = (
+      <EmptyState
+        title="Không tìm thấy khóa học"
+        description="Khóa học có thể đã bị ẩn hoặc đường dẫn không đúng."
+        action={
+          <Button asChild variant="outline">
+            <Link href="/dashboard">Về trang chủ</Link>
+          </Button>
+        }
+      />
     );
+  } else {
+    content = <CourseDetail course={course} otherCourses={data?.courses.filter((c) => c.id !== course.id) ?? []} />;
   }
-
-  return <CourseDetail course={course} />;
-}
-
-function BackLink({ className }: { className?: string }) {
-  return (
-    <Link
-      href="/dashboard"
-      className={cn(
-        "-ml-1 inline-flex items-center gap-3 rounded-full p-1 pr-2 text-[15px] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
-        className,
-      )}
-    >
-      <ArrowLeft className="size-5" />
-      Chi tiết khóa học
-    </Link>
-  );
-}
-
-function CourseDetail({ course }: { course: CourseSummary }) {
-  const meta = LEVEL_META[course.level];
-  const units = withLessonStates(course);
-  const next = getNextLesson(course);
 
   return (
     <>
-      {/* Header navy như màn "Detail Course" của thiết kế */}
-      <header className="relative overflow-hidden bg-hero-navy text-navy-foreground">
-        <HeroDecor />
-        <div className="relative mx-auto max-w-3xl px-5 pt-6 pb-16 sm:px-6 sm:pb-20">
-          <div className="flex items-center justify-between gap-3">
-            <BackLink className="text-white" />
-            <Badge className="border-transparent bg-white/15 text-white backdrop-blur-sm">
-              {meta.label} · {meta.cefr}
-            </Badge>
-          </div>
-          <h1 className="mt-10 text-3xl leading-tight font-semibold text-balance sm:mt-14 sm:text-4xl">{course.title}</h1>
-          <p className="mt-2 text-sm text-white/75">
-            {units.length} chương · {course.totalLessons} bài học
-          </p>
-        </div>
-      </header>
-
-      {/* Tấm nền trắng bo góc đè lên header */}
-      <main className="relative -mt-8 rounded-t-[2rem] bg-background">
-        <div className="mx-auto max-w-3xl px-5 pt-7 pb-16 sm:px-6">
-          <div className="flex items-center justify-between gap-3">
-            <p className="font-heading text-lg font-semibold">{course.totalLessons} bài học</p>
-            <p className="inline-flex items-center gap-1.5 text-sm text-muted-foreground tabular-nums">
-              <BookOpenCheck aria-hidden className="size-4" />
-              {course.completedLessons}/{course.totalLessons} đã xong · {course.progressPercent}%
-            </p>
-          </div>
-          {course.description && (
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{course.description}</p>
-          )}
-
-          {next && (
-            <Button asChild size="lg" className="mt-5 h-auto min-h-12 w-full py-3 leading-snug whitespace-normal sm:w-auto">
-              <Link href={`/lessons/${next.lesson.id}`}>
-                <Play className="fill-current" />
-                {course.completedLessons > 0 ? "Học tiếp" : "Bắt đầu"}: {next.lesson.title}
-              </Link>
-            </Button>
-          )}
-
-          <section aria-label="Nội dung khóa học" className="mt-8">
-            {units.length === 0 ? (
-              <p className="rounded-3xl bg-surface-soft p-6 text-muted-foreground">Khóa học này chưa có chương nào.</p>
-            ) : (
-              <UnitList units={units} />
-            )}
-          </section>
-        </div>
-      </main>
+      <AppHeader />
+      <main className="mx-auto w-full max-w-[1180px] px-4 pt-8 pb-28 sm:px-8 sm:pt-12 md:pb-20">{content}</main>
     </>
+  );
+}
+
+function CourseDetail({ course, otherCourses }: { course: CourseSummary; otherCourses: CourseSummary[] }) {
+  const meta = LEVEL_META[course.level];
+  const units = withLessonStates(course);
+  const next = getNextLesson(course);
+  const status = getCourseStatus(course);
+  const currentUnit = units.find((u) => u.id === next?.unit.id) ?? units[0];
+  const [showAll, setShowAll] = useState(false);
+
+  const preview = useApiQuery(
+    (signal) => (next ? api.getLesson(next.lesson.id, signal) : Promise.resolve(null)),
+    [next?.lesson.id],
+    { toastOnError: false },
+  );
+
+  // Số thứ tự bài đầu tiên của từng chương (đánh số liên tục trong cả khóa)
+  const firstNumbers = new Map<string, number>();
+  let counter = 1;
+  for (const unit of units) {
+    firstNumbers.set(unit.id, counter);
+    counter += unit.lessons.length;
+  }
+
+  const showUnit = (unitId: string) => {
+    setShowAll(true);
+    requestAnimationFrame(() => document.getElementById(`unit-${unitId}`)?.scrollIntoView({ behavior: "smooth" }));
+  };
+
+  const heading =
+    status === "completed"
+      ? "Bạn đã học xong khóa này"
+      : currentUnit
+        ? `${status === "not-started" ? "Bắt đầu với" : "Bạn đang ở"} Chương ${currentUnit.order}: ${shortUnitTitle(currentUnit.title)}`
+        : course.title;
+
+  const visibleUnits = showAll ? units : currentUnit ? [currentUnit] : [];
+
+  return (
+    <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-14">
+      <div className="min-w-0">
+        <p className="text-[15px] text-muted-foreground">
+          <Link href="/dashboard" className="underline decoration-line-strong underline-offset-4 hover:text-foreground">
+            Trang chủ
+          </Link>
+          <span className="mx-1.5">/</span>
+          <span className="font-medium text-foreground">{course.title}</span>
+          <span className="mx-1.5">·</span>
+          {meta.label} {meta.cefr}
+          <span className="mx-1.5">·</span>
+          <span className="tabular-nums">
+            {course.completedLessons}/{course.totalLessons} bài xong
+          </span>
+        </p>
+        <h1 className="mt-3 text-[2.4rem] leading-[1.08] tracking-[-0.015em] text-balance sm:text-[3.2rem]">{heading}</h1>
+        {course.description && (
+          <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">{course.description}</p>
+        )}
+
+        <div className="mt-8 space-y-6">
+          {units.length === 0 ? (
+            <EmptyState title="Khóa học này chưa có chương nào" description="Nội dung đang được biên soạn, quay lại sau nhé." />
+          ) : (
+            visibleUnits.map((unit) => (
+              <UnitCard
+                key={unit.id}
+                unit={unit}
+                firstNumber={firstNumbers.get(unit.id) ?? 1}
+                currentLessonId={next?.lesson.id}
+                previewWords={unit.id === next?.unit.id ? preview.data?.lesson.vocabularies : undefined}
+                footer={
+                  !showAll && units.length > 1 ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowAll(true)}
+                      className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-moss-strong outline-none hover:underline focus-visible:underline"
+                    >
+                      Xem toàn bộ {units.length} chương
+                      <ArrowRight className="size-4" />
+                    </button>
+                  ) : undefined
+                }
+              />
+            ))
+          )}
+        </div>
+      </div>
+
+      <aside className="space-y-10 lg:pt-2">
+        {units.length > 0 && (
+          <section aria-labelledby="chapters-heading">
+            <h2 id="chapters-heading" className="font-sans text-[15px] font-semibold tracking-normal">
+              {units.length} chương của khóa
+            </h2>
+            <ol className="mt-3 space-y-1">
+              {units.map((unit) => {
+                const isCurrent = unit.id === currentUnit?.id;
+                const done = unit.lessons.filter((l) => l.state === "completed").length;
+                return (
+                  <li key={unit.id}>
+                    <button
+                      type="button"
+                      onClick={() => showUnit(unit.id)}
+                      aria-current={isCurrent ? "step" : undefined}
+                      className={cn(
+                        "flex w-full items-center gap-4 rounded-md px-3.5 py-2.5 text-left text-[15px] outline-none transition-colors focus-visible:outline-2 focus-visible:outline-ring",
+                        isCurrent ? "bg-card font-semibold ring-1 ring-line" : "text-muted-foreground hover:bg-card hover:text-foreground",
+                      )}
+                    >
+                      <span className="w-4 shrink-0 text-[13px] tabular-nums">{unit.order}</span>
+                      <span className="min-w-0 flex-1 truncate">{shortUnitTitle(unit.title)}</span>
+                      <span className="shrink-0 text-[13px] font-normal tabular-nums">
+                        {done}/{unit.lessons.length}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+            <div className="mt-4 h-[5px] overflow-hidden rounded-full bg-line" aria-hidden>
+              <div className="h-full rounded-full bg-moss" style={{ width: `${course.progressPercent}%` }} />
+            </div>
+            <p className="mt-2 text-[13px] text-muted-foreground tabular-nums">
+              {course.completedLessons} trên {course.totalLessons} bài · {course.progressPercent}%
+            </p>
+          </section>
+        )}
+
+        {otherCourses.length > 0 && (
+          <section aria-labelledby="other-courses-heading">
+            <h2 id="other-courses-heading" className="font-sans text-[15px] font-semibold tracking-normal">
+              Khóa học khác
+            </h2>
+            <ul className="mt-3 border-t border-line">
+              {otherCourses.map((other) => {
+                const otherMeta = LEVEL_META[other.level];
+                const empty = getCourseStatus(other) === "empty";
+                return (
+                  <li key={other.id} className="border-b border-line">
+                    <Link
+                      href={`/courses/${other.id}`}
+                      className="block py-3.5 outline-none hover:text-moss-strong focus-visible:underline"
+                    >
+                      <span className={cn("block text-[15px] font-semibold", empty && "text-muted-foreground")}>
+                        {other.title}
+                      </span>
+                      <span className="text-[13px] text-muted-foreground tabular-nums">
+                        {otherMeta.label} · {otherMeta.cefr} ·{" "}
+                        {empty ? "Chưa có bài học" : `${other.completedLessons}/${other.totalLessons} bài`}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+      </aside>
+    </div>
   );
 }

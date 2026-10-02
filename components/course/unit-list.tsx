@@ -1,129 +1,103 @@
 "use client";
 
 import Link from "next/link";
-import { Check, CircleCheck, LockKeyhole, Play } from "lucide-react";
+import { CircleCheck, LockKeyhole, Play } from "lucide-react";
 import { toast } from "sonner";
 
-import { Progress } from "@/components/ui/progress";
-import type { LessonWithState, UnitWithStates } from "@/lib/course-progress";
-import { LESSON_TILE_CLASSES } from "@/lib/ui-constants";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { estimateMinutes, shortUnitTitle, type LessonWithState, type UnitWithStates } from "@/lib/course-progress";
 import { cn } from "@/lib/utils";
+import type { VocabularyItem } from "@/types/api";
 
-/**
- * Danh sách bài học theo chương, mỗi bài là 1 thẻ như danh sách bài trong màn "Detail Course":
- * thumbnail màu có nút play, số thứ tự "01 - Tên bài", thanh tiến độ và ổ khóa cho bài chưa mở.
- */
-export function UnitList({ units }: { units: UnitWithStates[] }) {
-  // Đánh số bài liên tục xuyên suốt khóa học: 01, 02, 03...
-  let lessonNumber = 0;
+interface UnitCardProps {
+  unit: UnitWithStates;
+  /** Số thứ tự bài đầu tiên của chương trong cả khóa (đánh số liên tục 01, 02…) */
+  firstNumber: number;
+  /** Bài đang học: hiện mở rộng với nút vào học */
+  currentLessonId?: string;
+  /** Từ của bài đang học (tải riêng) */
+  previewWords?: VocabularyItem[];
+  /** Hàng cuối của thẻ, vd nút "Xem toàn bộ chương" */
+  footer?: React.ReactNode;
+}
+
+/** Thẻ 1 chương: danh sách bài với trạng thái đã xong / đang học / chưa mở, bài đang học được mở rộng */
+export function UnitCard({ unit, firstNumber, currentLessonId, previewWords, footer }: UnitCardProps) {
+  const completed = unit.lessons.filter((l) => l.state === "completed").length;
+  const subtitle = unit.title.match(/\(([^)]*)\)\s*$/)?.[1];
 
   return (
-    <div className="space-y-8">
-      {units.map((unit) => {
-        const completed = unit.lessons.filter((l) => l.state === "completed").length;
-        const isUnitDone = unit.lessons.length > 0 && completed === unit.lessons.length;
+    <section
+      id={`unit-${unit.id}`}
+      aria-labelledby={`unit-title-${unit.id}`}
+      className="scroll-mt-6 overflow-hidden rounded-lg border border-line bg-card"
+    >
+      <header className="flex items-baseline justify-between gap-4 border-b border-line px-5 py-4 sm:px-8 sm:py-5">
+        <h2 id={`unit-title-${unit.id}`} className="font-sans text-[15px] font-semibold tracking-normal">
+          Chương {unit.order} · {shortUnitTitle(unit.title)}
+          {subtitle && <span className="font-normal text-muted-foreground"> ({subtitle})</span>}
+        </h2>
+        <span className="shrink-0 text-[15px] text-muted-foreground tabular-nums">
+          {completed}/{unit.lessons.length} bài
+        </span>
+      </header>
 
-        return (
-          <section key={unit.id} aria-labelledby={`unit-${unit.id}`} className="space-y-3">
-            <div className="flex items-baseline justify-between gap-3">
-              <h3 id={`unit-${unit.id}`} className="text-base font-semibold">
-                <span className="text-muted-foreground">Chương {unit.order} · </span>
-                {unit.title}
-              </h3>
-              <span
-                className={cn(
-                  "inline-flex shrink-0 items-center gap-1 text-xs font-medium tabular-nums",
-                  isUnitDone ? "text-success" : "text-muted-foreground",
-                )}
-              >
-                {isUnitDone && <Check aria-hidden className="size-3.5" strokeWidth={3} />}
-                {completed}/{unit.lessons.length} bài
-              </span>
-            </div>
+      {unit.lessons.length === 0 ? (
+        <p className="px-5 py-5 text-[15px] text-muted-foreground sm:px-8">Chương này chưa có bài học.</p>
+      ) : (
+        <ol>
+          {unit.lessons.map((lesson, index) => (
+            <li key={lesson.id} className="border-b border-line last:border-b-0">
+              {lesson.id === currentLessonId ? (
+                <CurrentLesson lesson={lesson} number={firstNumber + index} words={previewWords} />
+              ) : (
+                <LessonRow lesson={lesson} number={firstNumber + index} />
+              )}
+            </li>
+          ))}
+        </ol>
+      )}
 
-            {unit.lessons.length === 0 ? (
-              <p className="rounded-3xl bg-surface-soft p-5 text-sm text-muted-foreground">Chương này chưa có bài học.</p>
-            ) : (
-              <ol className="space-y-3">
-                {unit.lessons.map((lesson) => {
-                  lessonNumber += 1;
-                  return (
-                    <li key={lesson.id}>
-                      <LessonRow lesson={lesson} number={lessonNumber} />
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-          </section>
-        );
-      })}
-    </div>
+      {footer && <div className="border-t border-line px-5 py-4 sm:px-8">{footer}</div>}
+    </section>
   );
 }
 
-const STATE_TEXT: Record<LessonWithState["state"], string> = {
-  completed: "Đã hoàn thành",
-  current: "Đang học",
-  locked: "Chưa mở khóa",
-};
+const pad = (n: number) => String(n).padStart(2, "0");
 
 function LessonRow({ lesson, number }: { lesson: LessonWithState; number: number }) {
   const isLocked = lesson.state === "locked";
-  const progress = lesson.state === "completed" ? (lesson.score ?? 100) : 0;
-  const tileClass = LESSON_TILE_CLASSES[(number - 1) % LESSON_TILE_CLASSES.length];
+  const isReview = lesson.vocabCount === 0;
 
   const content = (
     <>
-      <span
-        aria-hidden
-        className={cn(
-          "relative grid size-16 shrink-0 place-items-center overflow-hidden rounded-2xl text-tile-foreground",
-          tileClass,
-          isLocked && "opacity-55",
+      <span className="w-7 shrink-0 text-[15px] text-muted-foreground tabular-nums">{pad(number)}</span>
+      <span className={cn("min-w-0 flex-1 text-[15px] leading-snug", lesson.state === "completed" && "text-muted-foreground")}>
+        {lesson.title}
+        {isReview && (
+          <span className="ml-1.5 text-[13px] text-muted-foreground">
+            · không có từ mới · +{lesson.xpReward} XP
+          </span>
         )}
-      >
-        <span className="absolute -top-3 -right-3 size-9 rounded-full bg-white/35" />
-        <span className="relative grid size-8 place-items-center rounded-full bg-white/85 shadow-sm">
-          {lesson.state === "completed" ? (
-            <Check className="size-4 text-success" strokeWidth={3} />
-          ) : (
-            <Play className="ml-0.5 size-3.5 fill-current" />
-          )}
-        </span>
       </span>
-
-      <span className={cn("min-w-0 flex-1", isLocked && "opacity-55")}>
-        <span
-          className={cn(
-            "block text-xs tabular-nums",
-            lesson.state === "current" ? "font-medium text-primary" : "text-muted-foreground",
-          )}
-        >
-          {STATE_TEXT[lesson.state]}
-          {lesson.state === "completed" && lesson.score !== null && ` · ${lesson.score}%`}
-          {` · +${lesson.xpReward} XP`}
+      {lesson.state === "completed" ? (
+        <span className="inline-flex shrink-0 items-center gap-2 text-[13px] text-moss-strong">
+          <span className="hidden sm:inline">Đã hoàn thành{lesson.score !== null && ` · ${lesson.score}%`}</span>
+          <CircleCheck aria-label="Đã hoàn thành" className="size-[18px]" />
         </span>
-        <span className="mt-0.5 line-clamp-2 text-[15px] leading-snug font-medium">
-          <span className="tabular-nums">{String(number).padStart(2, "0")}</span> - {lesson.title}
+      ) : isLocked ? (
+        <span className="inline-flex shrink-0 items-center gap-2 text-[13px] text-muted-foreground">
+          <span className="hidden sm:inline">Chưa mở khóa</span>
+          <LockKeyhole aria-label="Chưa mở khóa" className="size-4" />
         </span>
-        <Progress
-          aria-hidden
-          value={progress}
-          className={cn("mt-2.5 h-1", lesson.state === "completed" && "[&>*]:bg-success")}
-        />
-      </span>
-
-      {isLocked ? (
-        <LockKeyhole aria-hidden className="size-5 shrink-0 text-navy/70 dark:text-muted-foreground" />
-      ) : lesson.state === "completed" ? (
-        <CircleCheck aria-hidden className="size-5 shrink-0 text-success" />
-      ) : null}
+      ) : (
+        <span className="shrink-0 text-[13px] font-medium text-clay-strong">Đang học</span>
+      )}
     </>
   );
 
-  const rowClass =
-    "flex w-full items-center gap-4 rounded-3xl border border-border/70 bg-card p-3 pr-4 text-left shadow-soft outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
+  const rowClass = "flex w-full items-center gap-4 px-5 py-4 text-left outline-none sm:px-8";
 
   if (isLocked) {
     return (
@@ -132,7 +106,7 @@ function LessonRow({ lesson, number }: { lesson: LessonWithState; number: number
         aria-disabled="true"
         aria-label={`${lesson.title}: bài đang khóa, hoàn thành bài trước để mở khóa`}
         onClick={() => toast.info("Bài này đang khóa. Hoàn thành bài trước để mở khóa.")}
-        className={cn(rowClass, "cursor-not-allowed shadow-none")}
+        className={cn(rowClass, "cursor-not-allowed focus-visible:bg-paper")}
       >
         {content}
       </button>
@@ -140,11 +114,48 @@ function LessonRow({ lesson, number }: { lesson: LessonWithState; number: number
   }
 
   return (
-    <Link
-      href={`/lessons/${lesson.id}`}
-      className={cn(rowClass, "transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none")}
-    >
+    <Link href={`/lessons/${lesson.id}`} className={cn(rowClass, "transition-colors hover:bg-paper focus-visible:bg-paper")}>
       {content}
     </Link>
+  );
+}
+
+function CurrentLesson({ lesson, number, words }: { lesson: LessonWithState; number: number; words?: VocabularyItem[] }) {
+  const isStarted = lesson.status === "IN_PROGRESS";
+  const minutes = estimateMinutes(lesson.vocabCount, lesson.exerciseCount);
+
+  return (
+    <div className="relative flex gap-4 bg-paper px-5 py-7 sm:px-8">
+      <span aria-hidden className="ribbon absolute top-0 right-6 h-11 w-[18px] bg-clay sm:right-8" />
+      <span className="w-7 shrink-0 pt-0.5 text-[15px] font-semibold text-clay-strong tabular-nums">{pad(number)}</span>
+      <div className="min-w-0 flex-1 pr-6">
+        <p className="text-[13px] font-medium text-clay-strong">{isStarted ? "Đang học" : "Bài tiếp theo"}</p>
+        <h3 className="mt-1 font-serif text-[2rem] leading-tight font-medium text-balance">{lesson.title}</h3>
+        <p className="mt-3 text-[15px]">
+          {lesson.vocabCount > 0 && (
+            <>
+              <b className="font-semibold">{lesson.vocabCount}</b> từ mới ·{" "}
+            </>
+          )}
+          <b className="font-semibold">{lesson.exerciseCount}</b> bài tập · khoảng{" "}
+          <b className="font-semibold">{minutes}</b> phút
+          <span className="ml-2 text-[13px] text-muted-foreground">+{lesson.xpReward} XP</span>
+        </p>
+        {lesson.vocabCount > 0 &&
+          (words ? (
+            <p className="mt-3 font-serif text-[17px] text-muted-foreground italic">
+              {words.map((w) => w.word).join(", ")}
+            </p>
+          ) : (
+            <Skeleton className="mt-3 h-5 w-64 max-w-full" />
+          ))}
+        <Button asChild size="lg" className="mt-6 h-auto min-h-12 py-3 leading-snug whitespace-normal">
+          <Link href={`/lessons/${lesson.id}`}>
+            <Play className="size-4" />
+            Học bài: {lesson.title}
+          </Link>
+        </Button>
+      </div>
+    </div>
   );
 }

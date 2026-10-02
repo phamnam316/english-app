@@ -4,18 +4,27 @@ interface DisplayUser {
 }
 
 /**
- * Tên để chào: người Việt gọi bằng tên (từ cuối cùng), vd "Nguyễn Văn Nam" -> "Nam".
+ * Tên để chào: người Việt gọi bằng tên (từ cuối cùng), vd "Nguyễn Văn Nam" -> "Nam";
+ * tên chỉ có 1–2 từ thì giữ nguyên ("Minh Anh", "User A").
  * Chưa có tên thì dùng phần trước @ của email.
  */
 export function getGreetingName(user: DisplayUser | undefined): string {
   const name = user?.name?.trim();
-  if (name) return name.split(/\s+/).at(-1) ?? name;
+  if (name) {
+    const words = name.split(/\s+/);
+    return words.length <= 2 ? name : (words.at(-1) ?? name);
+  }
   const emailName = user?.email?.split("@")[0];
   return emailName || "bạn";
 }
 
-/** Chữ cái hiển thị trong avatar khi user chưa có ảnh */
+/**
+ * Chữ viết tắt trong avatar khi user chưa có ảnh: chữ đầu của 2 từ cuối trong tên
+ * ("Trần Minh Anh" -> "MA"), chưa có tên thì chữ đầu của email.
+ */
 export function getAvatarInitial(user: DisplayUser | undefined): string {
+  const words = user?.name?.trim().split(/\s+/).filter(Boolean) ?? [];
+  if (words.length >= 2) return words.slice(-2).map((w) => w.charAt(0).toUpperCase()).join("");
   return getGreetingName(user).charAt(0).toUpperCase() || "?";
 }
 

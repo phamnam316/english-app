@@ -14,7 +14,7 @@ import {
   SpeechRecognitionError,
   useSpeechRecognition,
 } from "@/hooks/use-speech-recognition";
-import { isSpokenMatch, shuffle } from "@/lib/practice";
+import { isSpokenMatch, weightedShuffle } from "@/lib/practice";
 import { playCorrectSound, playWrongSound } from "@/lib/sounds";
 import { cn } from "@/lib/utils";
 import type { PracticeWord } from "@/types/api";
@@ -29,7 +29,7 @@ export function SpeakGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
   const { speak, stop: stopSpeaking } = useSpeech();
   const { isSupported, isListening, listen, stop: stopListening } = useSpeechRecognition();
   // Từ/cụm ngắn dễ nhận dạng chính xác hơn
-  const [items] = useState(() => shuffle(words.filter((w) => w.word.length <= 24)).slice(0, ROUND_SIZE));
+  const [items] = useState(() => weightedShuffle(words.filter((w) => w.word.length <= 24)).slice(0, ROUND_SIZE));
   const [phase, setPhase] = useState<GamePhase>(skipIntro && isSupported && items.length > 0 ? "playing" : "intro");
   const [index, setIndex] = useState(0);
   const [attempts, setAttempts] = useState(0);
@@ -129,14 +129,14 @@ export function SpeakGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
           <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center px-4 pt-6 pb-32 text-center">
             <section
               key={item.id}
-              className="w-full rounded-[2rem] border border-border/70 bg-card px-6 py-9 shadow-soft animate-in fade-in slide-in-from-right-4 duration-300 motion-reduce:animate-none"
+              className="w-full rounded-lg border border-line bg-card px-6 py-9 animate-in fade-in slide-in-from-right-4 duration-300 motion-reduce:animate-none"
             >
               <p className="text-sm text-muted-foreground">Đọc to từ này</p>
-              <p className="mt-2 font-heading text-4xl font-semibold break-words text-primary sm:text-5xl">{item.word}</p>
-              {item.phonetic && <p className="mt-1 text-lg text-muted-foreground">{item.phonetic}</p>}
+              <p className="mt-2 font-serif text-5xl font-medium break-words sm:text-6xl">{item.word}</p>
+              {item.phonetic && <p className="mt-2 font-ipa text-lg text-muted-foreground">{item.phonetic}</p>}
               <p className="mt-3 text-muted-foreground">{item.meaning}</p>
               <Button
-                variant="secondary"
+                variant="outline"
                 className="mt-5 rounded-full px-4"
                 onClick={() => void speak(item.word, { audioUrl: item.audioUrl })}
               >
@@ -151,16 +151,16 @@ export function SpeakGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
               disabled={isDone}
               aria-label={isListening ? "Dừng nghe" : "Bấm để nói"}
               className={cn(
-                "relative mt-10 grid size-24 place-items-center rounded-full outline-none transition-transform focus-visible:ring-[3px] focus-visible:ring-ring active:scale-95 disabled:cursor-default",
+                "relative mt-10 grid size-24 place-items-center rounded-full outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:translate-y-px disabled:cursor-default",
                 status === "correct"
                   ? "bg-success text-success-foreground"
                   : status === "failed"
-                    ? "bg-destructive text-white"
-                    : "bg-primary text-primary-foreground shadow-[0_18px_34px_-14px_var(--primary)] hover:scale-105",
+                    ? "bg-destructive text-white dark:text-background"
+                    : "bg-moss text-white hover:bg-moss-strong dark:text-primary-foreground",
               )}
             >
               {isListening && (
-                <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-primary/40 motion-reduce:animate-none" />
+                <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-moss/40 motion-reduce:animate-none" />
               )}
               {status === "correct" ? (
                 <Check className="size-10" strokeWidth={3} />

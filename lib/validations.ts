@@ -137,6 +137,17 @@ export const practiceResultSchema = z
 
 export type PracticeResultInput = z.infer<typeof practiceResultSchema>;
 
+// ---------------------------------------------------------------------------
+// Mức nhớ từ vựng
+// ---------------------------------------------------------------------------
+
+export const wordRatingSchema = z.object({
+  word: z.string({ error: "word là bắt buộc." }).trim().min(1, "word không được để trống.").max(100, "Từ quá dài."),
+  rating: z.union([z.literal(1), z.literal(2), z.literal(3), z.null()], {
+    error: "rating phải là 1, 2, 3 hoặc null.",
+  }),
+});
+
 export type CorrectGrammarInput = z.infer<typeof correctGrammarSchema>;
 export type AIChatInput = z.infer<typeof aiChatSchema>;
 export type TextToSpeechInput = z.input<typeof textToSpeechSchema>;

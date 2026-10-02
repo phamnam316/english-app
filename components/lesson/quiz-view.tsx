@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { useShallow } from "zustand/react/shallow";
 
 import { FeedbackBanner } from "@/components/lesson/feedback-banner";
+import { Kbd, LessonFooter } from "@/components/lesson/lesson-footer";
 import { WordChips } from "@/components/word-chips";
-import { LessonFooter } from "@/components/lesson/lesson-footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSpeech } from "@/hooks/use-speech";
@@ -24,6 +24,8 @@ import { QUIZ_TYPE_LABEL, praiseFor } from "@/lib/ui-constants";
 import { cn } from "@/lib/utils";
 import { useLessonStore } from "@/store/useLessonStore";
 import type { CheckAnswerResponse } from "@/types/api";
+
+const questionClass = "font-sans text-2xl leading-snug font-semibold tracking-normal text-balance sm:text-[1.75rem]";
 
 /** Phần 2 của bài: làm bài tập (trắc nghiệm, điền từ, nghe, xếp câu, nói), kiểm tra từng câu và xem phản hồi ngay */
 export function QuizView() {
@@ -118,15 +120,15 @@ export function QuizView() {
 
   return (
     <>
-      {/* Chừa chỗ dưới cùng cho thanh nút / banner phản hồi */}
-      <div className={cn("mx-auto w-full max-w-2xl px-4 pt-4 sm:pt-8", isSubmitted ? "pb-80 sm:pb-48" : "pb-32")}>
-        <div className="space-y-5">
-          <div className="flex items-center justify-between gap-3 text-sm font-semibold">
-            <span className="rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">{QUIZ_TYPE_LABEL[exercise.type]}</span>
+      {/* Chừa chỗ dưới cùng cho thanh nút / khung phản hồi */}
+      <div className={cn("w-full max-w-[720px] pt-6 sm:pt-10 lg:pt-12", isSubmitted ? "pb-80 sm:pb-56" : "pb-36")}>
+        <div className="space-y-4">
+          <p className="flex items-center justify-between gap-3 text-[14px]">
+            <span className="font-semibold text-muted-foreground">{QUIZ_TYPE_LABEL[exercise.type]}</span>
             <span className="text-muted-foreground tabular-nums">
               Câu {currentIndex + 1}/{exercises.length}
             </span>
-          </div>
+          </p>
 
           {exercise.type === "FILL_IN_BLANK" && !options ? (
             <FillBlankQuestion
@@ -135,30 +137,38 @@ export function QuizView() {
               isCorrect={isSubmitted && result ? result.isCorrect : undefined}
             />
           ) : (
-            <h1 className="text-2xl leading-snug font-semibold text-balance sm:text-3xl">{exercise.question}</h1>
+            <h1 className={questionClass}>{exercise.question}</h1>
           )}
 
           {audioText &&
             (isListeningExercise ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 pt-2">
                 <button
                   type="button"
                   aria-label="Nghe lại"
                   onClick={() => playAudio()}
-                  className="grid size-20 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_16px_30px_-12px_var(--primary)] outline-none transition-transform hover:scale-105 focus-visible:ring-[3px] focus-visible:ring-ring active:scale-95"
+                  className="grid size-16 place-items-center rounded-full bg-moss text-white outline-none transition-colors hover:bg-moss-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-moss dark:text-primary-foreground"
                 >
-                  <Volume2 className="size-9" />
+                  <Volume2 className="size-7" />
                 </button>
-                <Button variant="secondary" size="lg" className="rounded-full" onClick={() => playAudio(0.7)}>
-                  <Snail className="size-5" />
+                <button
+                  type="button"
+                  onClick={() => playAudio(0.7)}
+                  className="inline-flex h-11 items-center gap-2 rounded-full border border-line-strong px-4 text-[15px] font-medium outline-none hover:bg-card focus-visible:outline-2 focus-visible:outline-ring"
+                >
+                  <Snail className="size-[18px]" />
                   Nghe chậm
-                </Button>
+                </button>
               </div>
             ) : (
-              <Button variant="secondary" size="lg" className="h-12 rounded-full px-6" onClick={() => playAudio()}>
-                <Headphones className="size-5" />
+              <button
+                type="button"
+                onClick={() => playAudio()}
+                className="inline-flex h-11 items-center gap-2 rounded-full border border-line-strong px-5 text-[15px] font-medium outline-none hover:bg-card focus-visible:outline-2 focus-visible:outline-ring"
+              >
+                <Headphones className="size-[18px]" />
                 Nghe đoạn audio
-              </Button>
+              </button>
             ))}
         </div>
 
@@ -205,15 +215,15 @@ export function QuizView() {
         />
       ) : (
         <LessonFooter className="justify-end">
-          <p className="mr-auto hidden text-sm text-muted-foreground sm:block">
-            Nhấn <kbd className="rounded-md border bg-card px-1.5 py-0.5 font-sans text-xs font-semibold">Enter</kbd> để kiểm tra
+          <p className="mr-auto hidden text-[13px] text-muted-foreground md:block">
+            {choiceOptions && (
+              <>
+                <Kbd>1</Kbd>–<Kbd>{Math.min(choiceOptions.length, 9)}</Kbd> để chọn,{" "}
+              </>
+            )}
+            <Kbd>Enter</Kbd> để kiểm tra
           </p>
-          <Button
-            size="lg"
-            className="w-full sm:w-auto sm:min-w-48"
-            disabled={!canCheck}
-            onClick={() => void handleCheck()}
-          >
+          <Button size="lg" className="w-full sm:w-auto sm:min-w-56" disabled={!canCheck} onClick={() => void handleCheck()}>
             {isChecking ? (
               <>
                 <LoaderCircle className="animate-spin" />
@@ -232,25 +242,23 @@ export function QuizView() {
 /** Câu điền từ: chỗ trống "____" hiện luôn chữ user đang gõ */
 function FillBlankQuestion({ question, answer, isCorrect }: { question: string; answer: string; isCorrect?: boolean }) {
   const parts = question.split(/_{2,}/);
-  if (parts.length === 1) {
-    return <h1 className="text-2xl leading-snug font-semibold text-balance sm:text-3xl">{question}</h1>;
-  }
+  if (parts.length === 1) return <h1 className={questionClass}>{question}</h1>;
 
   return (
-    <h1 className="text-2xl leading-relaxed font-semibold sm:text-3xl">
+    <h1 className={cn(questionClass, "leading-relaxed")}>
       {parts.map((part, i) => (
         <span key={i}>
           {part}
           {i < parts.length - 1 && (
             <span
               className={cn(
-                "mx-1 inline-block min-w-24 border-b-[3px] border-dashed px-1 text-center",
-                isCorrect === undefined && "border-primary/60 text-primary",
+                "mx-1 inline-block min-w-24 border-b-2 border-dashed px-1 text-center",
+                isCorrect === undefined && "border-moss text-moss-strong",
                 isCorrect === true && "border-success text-success",
                 isCorrect === false && "border-destructive text-destructive line-through decoration-2",
               )}
             >
-              {answer.trim() || " "}
+              {answer.trim() || " "}
             </span>
           )}
         </span>
@@ -268,8 +276,11 @@ interface OptionListProps {
 }
 
 function OptionList({ options, answer, result, disabled, onSelect }: OptionListProps) {
+  // Lựa chọn ngắn (1–2 từ) xếp 2 cột cho gọn, câu dài xếp 1 cột cho dễ đọc
+  const isShort = options.every((option) => option.length <= 18);
+
   return (
-    <div role="group" aria-label="Các đáp án" className="grid gap-3 sm:grid-cols-2">
+    <div role="group" aria-label="Các đáp án" className={cn("grid gap-2.5", isShort && "sm:grid-cols-2")}>
       {options.map((option, index) => {
         const isSelected = answer === option;
         const isRightOption = result ? isAnswerCorrect(option, result.correctAnswer) : false;
@@ -285,27 +296,26 @@ function OptionList({ options, answer, result, disabled, onSelect }: OptionListP
             disabled={disabled}
             onClick={() => onSelect(option)}
             className={cn(
-              "flex min-h-14 items-center gap-3 rounded-2xl border-2 border-border bg-card px-4 py-3 text-left text-base font-medium shadow-soft outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-default",
-              !result && !isSelected && "hover:border-primary/40 hover:bg-secondary/50",
-              !result && isSelected && "border-primary bg-secondary text-secondary-foreground",
-              isRightOption && "border-success bg-success-soft text-success",
-              isWrongPick && "border-destructive bg-danger-soft text-destructive",
-              isDimmed && "text-muted-foreground",
+              "flex min-h-14 items-center gap-3 rounded-md border bg-card px-4 py-3 text-left text-base font-medium outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-default",
+              !result && !isSelected && "border-line-strong hover:border-moss",
+              !result && isSelected && "border-2 border-moss bg-moss-soft px-[15px] text-moss-strong",
+              isRightOption && "border-2 border-success bg-success-soft px-[15px] text-success",
+              isWrongPick && "border-2 border-destructive bg-danger-soft px-[15px] text-destructive",
+              isDimmed && "border-line text-muted-foreground",
             )}
           >
             <span
               aria-hidden
               className={cn(
-                "grid size-7 shrink-0 place-items-center rounded-full border-2 text-xs font-semibold",
-                !result && isSelected ? "border-primary text-primary" : "border-current/25 text-muted-foreground",
-                (isRightOption || isWrongPick) && "border-current text-current",
+                "grid size-6 shrink-0 place-items-center rounded-full border text-[12px] font-semibold",
+                isSelected || isRightOption || isWrongPick ? "border-current" : "border-line-strong text-muted-foreground",
               )}
             >
               {index + 1}
             </span>
             <span className={cn("flex-1", isWrongPick && "line-through decoration-2")}>{option}</span>
-            {isRightOption && <Check aria-label="Đáp án đúng" className="size-5 shrink-0" strokeWidth={3} />}
-            {isWrongPick && <X aria-label="Bạn đã chọn sai" className="size-5 shrink-0" strokeWidth={3} />}
+            {isRightOption && <Check aria-label="Đáp án đúng" className="size-5 shrink-0" strokeWidth={2.5} />}
+            {isWrongPick && <X aria-label="Bạn đã chọn sai" className="size-5 shrink-0" strokeWidth={2.5} />}
           </button>
         );
       })}
@@ -345,7 +355,7 @@ function TextAnswer({ allowSpeech = false, answer, result, disabled, onChange, o
 
   return (
     <div className="space-y-2">
-      <label htmlFor="quiz-answer" className="text-sm font-medium text-muted-foreground">
+      <label htmlFor="quiz-answer" className="text-[14px] font-medium text-muted-foreground">
         {canSpeak ? "Bấm micro để nói, hoặc gõ câu trả lời" : "Câu trả lời của bạn"}
       </label>
       <div className="flex gap-2">
@@ -369,9 +379,9 @@ function TextAnswer({ allowSpeech = false, answer, result, disabled, onChange, o
             }
           }}
           className={cn(
-            "h-14 flex-1 rounded-2xl border-2 bg-card px-4 text-lg font-medium shadow-soft md:text-lg disabled:opacity-100",
-            result?.isCorrect && "border-success bg-success-soft text-success",
-            result && !result.isCorrect && "border-destructive bg-danger-soft text-destructive line-through decoration-2",
+            "h-14 flex-1 px-4 text-lg font-medium md:text-lg disabled:opacity-100",
+            result?.isCorrect && "border-2 border-success bg-success-soft text-success",
+            result && !result.isCorrect && "border-2 border-destructive bg-danger-soft text-destructive line-through decoration-2",
           )}
         />
         {canSpeak && !disabled && (
@@ -380,12 +390,12 @@ function TextAnswer({ allowSpeech = false, answer, result, disabled, onChange, o
             onClick={() => void record()}
             aria-label={isListening ? "Dừng nghe" : "Nói câu trả lời"}
             className={cn(
-              "relative grid size-14 shrink-0 place-items-center rounded-2xl outline-none transition-transform focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-95",
-              isListening ? "bg-destructive text-white" : "bg-primary text-primary-foreground",
+              "relative grid size-14 shrink-0 place-items-center rounded-md text-white outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+              isListening ? "bg-destructive" : "bg-moss hover:bg-moss-strong dark:text-primary-foreground",
             )}
           >
             {isListening && (
-              <span aria-hidden className="absolute inset-0 animate-ping rounded-2xl bg-destructive/40 motion-reduce:animate-none" />
+              <span aria-hidden className="absolute inset-0 animate-ping rounded-md bg-destructive/40 motion-reduce:animate-none" />
             )}
             {isListening ? <Square className="size-5 fill-current" /> : <Mic className="size-6" />}
           </button>

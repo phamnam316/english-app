@@ -2,12 +2,13 @@
  * Giáo án "Tiếng Anh A1–A2 trong 30 ngày".
  *
  * - 5 chương x 6 ngày; ngày cuối mỗi chương là bài ôn tập (không có từ mới, nhiều bài tập hơn).
- * - Mỗi bài thường: 6 từ mới (thẻ từ vựng) + 6–7 bài tập: trắc nghiệm, điền từ, nghe (máy đọc) và xếp thẻ từ
- *   thành câu. Bài ôn tập có thêm câu tự nói/viết (có micro) làm thử thách.
+ * - Mỗi bài thường: 6 từ mới (thẻ từ vựng) + ghi chú ngữ pháp + 6–7 bài tập: trắc nghiệm, điền từ,
+ *   nghe (máy đọc) và xếp thẻ từ thành câu. Bài ôn tập có thêm câu tự nói/viết (có micro) làm thử thách.
  * - Ngữ pháp tăng dần: to be -> a/an -> have/has -> there is/are -> hiện tại đơn -> tần suất
  *   -> some/any -> hiện tại tiếp diễn -> can -> quá khứ đơn -> so sánh -> be going to.
  *
  * Quy ước: trong mc(...) và listen(...) đáp án đúng luôn đứng ĐẦU danh sách lựa chọn (hàm tự xáo khi seed).
+ * v(từ, phiên âm, nghĩa, câu ví dụ, bản dịch câu ví dụ).
  */
 import { fill, listen, mc, order, say, v, type SeedCourse } from "./types";
 
@@ -28,13 +29,24 @@ export const A1_A2_30_DAYS: SeedCourse = {
       lessons: [
         {
           title: "Chào hỏi và tạm biệt",
+          grammar: {
+            title: "Chào theo thời điểm trong ngày",
+            intro:
+              "Chọn lời chào theo **buổi**: morning (sáng), afternoon (chiều), evening (tối). *Good night* chỉ dùng để chúc ngủ ngon hoặc chia tay buổi tối muộn.",
+            patterns: ["**Good morning / afternoon / evening**, + tên.", "How are you? – I'm fine, **thank you**."],
+            examples: [
+              { en: "Good morning, Mr Nam.", vi: "Chào buổi sáng thầy Nam." },
+              { en: "How are you? – I'm fine, thank you.", vi: "Bạn khỏe không? – Mình khỏe, cảm ơn bạn." },
+            ],
+            avoid: { wrong: "Good night, everyone! (khi vừa đến lớp buổi tối)", fix: "Vừa gặp nhau thì nói *Good evening*." },
+          },
           vocab: [
-            v("hello", "/həˈləʊ/", "xin chào", "Hello, I am Lan."),
-            v("good morning", "/ɡʊd ˈmɔːnɪŋ/", "chào buổi sáng", "Good morning, Mr Nam."),
-            v("good afternoon", "/ɡʊd ˌɑːftəˈnuːn/", "chào buổi chiều", "Good afternoon, class."),
-            v("good evening", "/ɡʊd ˈiːvnɪŋ/", "chào buổi tối", "Good evening, everyone."),
-            v("goodbye", "/ˌɡʊdˈbaɪ/", "tạm biệt", "Goodbye, see you tomorrow."),
-            v("thank you", "/ˈθæŋk juː/", "cảm ơn", "Thank you very much."),
+            v("hello", "/həˈləʊ/", "xin chào", "Hello, I am Lan.", "Xin chào, mình là Lan."),
+            v("good morning", "/ɡʊd ˈmɔːnɪŋ/", "chào buổi sáng", "Good morning, Mr Nam.", "Chào buổi sáng thầy Nam."),
+            v("good afternoon", "/ɡʊd ˌɑːftəˈnuːn/", "chào buổi chiều", "Good afternoon, class.", "Chào buổi chiều cả lớp."),
+            v("good evening", "/ɡʊd ˈiːvnɪŋ/", "chào buổi tối", "Good evening, everyone.", "Chào buổi tối mọi người."),
+            v("goodbye", "/ˌɡʊdˈbaɪ/", "tạm biệt", "Goodbye, see you tomorrow.", "Tạm biệt, hẹn gặp lại ngày mai."),
+            v("thank you", "/ˈθæŋk juː/", "cảm ơn", "Thank you very much.", "Cảm ơn bạn rất nhiều."),
           ],
           exercises: [
             mc(
@@ -60,13 +72,28 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Giới thiệu bản thân (to be)",
+          grammar: {
+            title: "Động từ to be: am / is / are",
+            intro: "**to be** nghĩa là “là, thì, ở”. Chọn *am*, *is* hay *are* theo chủ ngữ đứng trước.",
+            patterns: [
+              "I **am** (I'm)",
+              "He / She / It **is** (he's, she's, it's)",
+              "You / We / They **are** (you're, we're, they're)",
+            ],
+            examples: [
+              { en: "I am a student.", vi: "Tôi là học sinh." },
+              { en: "She is from Hanoi.", vi: "Cô ấy đến từ Hà Nội." },
+              { en: "We are Vietnamese.", vi: "Chúng tôi là người Việt Nam." },
+            ],
+            avoid: { wrong: "I is a student.", fix: "Với I luôn dùng *am*: I am a student." },
+          },
           vocab: [
-            v("name", "/neɪm/", "tên", "My name is Minh."),
-            v("meet", "/miːt/", "gặp", "Nice to meet you."),
-            v("from", "/frɒm/", "đến từ", "I am from Hanoi."),
-            v("country", "/ˈkʌntri/", "đất nước", "Vietnam is a beautiful country."),
-            v("Vietnamese", "/ˌvjetnəˈmiːz/", "người Việt; tiếng Việt", "I am Vietnamese."),
-            v("student", "/ˈstjuːdnt/", "học sinh, sinh viên", "I am a student."),
+            v("name", "/neɪm/", "tên", "My name is Minh.", "Tên tôi là Minh."),
+            v("meet", "/miːt/", "gặp", "Nice to meet you.", "Rất vui được gặp bạn."),
+            v("from", "/frɒm/", "đến từ", "I am from Hanoi.", "Tôi đến từ Hà Nội."),
+            v("country", "/ˈkʌntri/", "đất nước", "Vietnam is a beautiful country.", "Việt Nam là một đất nước xinh đẹp."),
+            v("Vietnamese", "/ˌvjetnəˈmiːz/", "người Việt; tiếng Việt", "I am Vietnamese.", "Tôi là người Việt Nam."),
+            v("student", "/ˈstjuːdnt/", "học sinh, sinh viên", "I am a student.", "Tôi là học sinh."),
           ],
           exercises: [
             fill("My ___ is Hoa. (tên)", "name"),
@@ -83,13 +110,23 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Số đếm và tuổi",
+          grammar: {
+            title: "Hỏi và nói tuổi",
+            intro: "Tiếng Anh dùng **be** (am/is/are) để nói tuổi, không dùng *have*.",
+            patterns: ["How old **are** you?", "I **am** + số + years old."],
+            examples: [
+              { en: "I am twenty years old.", vi: "Tôi hai mươi tuổi." },
+              { en: "My sister is twelve.", vi: "Em gái tôi mười hai tuổi." },
+            ],
+            avoid: { wrong: "I have twenty years.", fix: "Có thể bỏ *years old*: I'm twenty." },
+          },
           vocab: [
-            v("one", "/wʌn/", "số một", "I have one brother."),
-            v("ten", "/ten/", "số mười", "I have ten books."),
-            v("twelve", "/twelv/", "số mười hai", "My sister is twelve."),
-            v("twenty", "/ˈtwenti/", "số hai mươi", "I am twenty years old."),
-            v("old", "/əʊld/", "(… tuổi); già, cũ", "How old are you?"),
-            v("phone number", "/ˈfəʊn ˌnʌmbə(r)/", "số điện thoại", "What is your phone number?"),
+            v("one", "/wʌn/", "số một", "I have one brother.", "Tôi có một anh trai."),
+            v("ten", "/ten/", "số mười", "I have ten books.", "Tôi có mười quyển sách."),
+            v("twelve", "/twelv/", "số mười hai", "My sister is twelve.", "Em gái tôi mười hai tuổi."),
+            v("twenty", "/ˈtwenti/", "số hai mươi", "I am twenty years old.", "Tôi hai mươi tuổi."),
+            v("old", "/əʊld/", "(… tuổi); già, cũ", "How old are you?", "Bạn bao nhiêu tuổi?"),
+            v("phone number", "/ˈfəʊn ˌnʌmbə(r)/", "số điện thoại", "What is your phone number?", "Số điện thoại của bạn là gì?"),
           ],
           exercises: [
             mc("Số 15 đọc là:", ["fifteen", "fifty", "five", "fiveteen"], "15 = fifteen, còn 50 = fifty."),
@@ -107,13 +144,25 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Nghề nghiệp (a/an)",
+          grammar: {
+            title: "Mạo từ a / an",
+            intro:
+              "Nói nghề nghiệp cần **a/an** trước danh từ số ít. Chọn theo **âm** đầu của từ phía sau, không theo chữ cái.",
+            patterns: ["**a** + âm phụ âm: a doctor, a teacher", "**an** + âm nguyên âm: an engineer, an office"],
+            examples: [
+              { en: "He is a doctor.", vi: "Anh ấy là bác sĩ." },
+              { en: "She is an engineer.", vi: "Cô ấy là kỹ sư." },
+              { en: "What is your job?", vi: "Bạn làm nghề gì?" },
+            ],
+            avoid: { wrong: "She is engineer.", fix: "Nói nghề nghiệp phải có a/an: She is *an* engineer." },
+          },
           vocab: [
-            v("teacher", "/ˈtiːtʃə(r)/", "giáo viên", "My mother is a teacher."),
-            v("doctor", "/ˈdɒktə(r)/", "bác sĩ", "He is a doctor."),
-            v("engineer", "/ˌendʒɪˈnɪə(r)/", "kỹ sư", "She is an engineer."),
-            v("nurse", "/nɜːs/", "y tá", "My aunt is a nurse."),
-            v("job", "/dʒɒb/", "công việc, nghề", "What is your job?"),
-            v("office", "/ˈɒfɪs/", "văn phòng", "I work in an office."),
+            v("teacher", "/ˈtiːtʃə(r)/", "giáo viên", "My mother is a teacher.", "Mẹ tôi là giáo viên."),
+            v("doctor", "/ˈdɒktə(r)/", "bác sĩ", "He is a doctor.", "Anh ấy là bác sĩ."),
+            v("engineer", "/ˌendʒɪˈnɪə(r)/", "kỹ sư", "She is an engineer.", "Cô ấy là kỹ sư."),
+            v("nurse", "/nɜːs/", "y tá", "My aunt is a nurse.", "Dì tôi là y tá."),
+            v("job", "/dʒɒb/", "công việc, nghề", "What is your job?", "Bạn làm nghề gì?"),
+            v("office", "/ˈɒfɪs/", "văn phòng", "I work in an office.", "Tôi làm việc ở văn phòng."),
           ],
           exercises: [
             mc(
@@ -130,13 +179,28 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Đồ vật trong lớp (this/that, số nhiều)",
+          grammar: {
+            title: "this / that / these / those và số nhiều",
+            intro:
+              "**this/these** chỉ vật ở gần, **that/those** chỉ vật ở xa. Danh từ số nhiều thường thêm **-s**; tận cùng -s, -x, -ch, -sh thì thêm **-es**.",
+            patterns: [
+              "**This is** + 1 vật · **These are** + nhiều vật (ở gần)",
+              "**That is** + 1 vật · **Those are** + nhiều vật (ở xa)",
+            ],
+            examples: [
+              { en: "This is my book.", vi: "Đây là quyển sách của tôi." },
+              { en: "Those chairs are old.", vi: "Những cái ghế kia cũ rồi." },
+              { en: "One box, two boxes.", vi: "Một cái hộp, hai cái hộp." },
+            ],
+            avoid: { wrong: "These is my bags.", fix: "Nhiều vật thì dùng *are*: These are my bags." },
+          },
           vocab: [
-            v("book", "/bʊk/", "quyển sách", "This is my book."),
-            v("pen", "/pen/", "cây bút", "That is your pen."),
-            v("bag", "/bæɡ/", "cái cặp, cái túi", "These bags are new."),
-            v("chair", "/tʃeə(r)/", "cái ghế", "Those chairs are old."),
-            v("table", "/ˈteɪbl/", "cái bàn", "The book is on the table."),
-            v("window", "/ˈwɪndəʊ/", "cửa sổ", "Open the window, please."),
+            v("book", "/bʊk/", "quyển sách", "This is my book.", "Đây là quyển sách của tôi."),
+            v("pen", "/pen/", "cây bút", "That is your pen.", "Kia là cây bút của bạn."),
+            v("bag", "/bæɡ/", "cái cặp, cái túi", "These bags are new.", "Những cái túi này còn mới."),
+            v("chair", "/tʃeə(r)/", "cái ghế", "Those chairs are old.", "Những cái ghế kia cũ rồi."),
+            v("table", "/ˈteɪbl/", "cái bàn", "The book is on the table.", "Quyển sách ở trên bàn."),
+            v("window", "/ˈwɪndəʊ/", "cửa sổ", "Open the window, please.", "Làm ơn mở cửa sổ ra."),
           ],
           exercises: [
             mc(
@@ -185,13 +249,23 @@ export const A1_A2_30_DAYS: SeedCourse = {
       lessons: [
         {
           title: "Gia đình (have/has)",
+          grammar: {
+            title: "have / has: có",
+            intro: "Nói ai đó **có** gì thì dùng have/has. **He / She / It** đi với **has**, các ngôi còn lại dùng **have**.",
+            patterns: ["I / You / We / They **have** + …", "He / She / It **has** + …"],
+            examples: [
+              { en: "I have two brothers.", vi: "Tôi có hai anh trai." },
+              { en: "She has one sister.", vi: "Cô ấy có một chị gái." },
+            ],
+            avoid: { wrong: "She have a brother.", fix: "Chủ ngữ she dùng *has*: She has a brother." },
+          },
           vocab: [
-            v("mother", "/ˈmʌðə(r)/", "mẹ", "My mother is a nurse."),
-            v("father", "/ˈfɑːðə(r)/", "bố", "My father works in an office."),
-            v("brother", "/ˈbrʌðə(r)/", "anh trai, em trai", "I have two brothers."),
-            v("sister", "/ˈsɪstə(r)/", "chị gái, em gái", "She has one sister."),
-            v("parents", "/ˈpeərənts/", "bố mẹ", "My parents are teachers."),
-            v("grandmother", "/ˈɡrænmʌðə(r)/", "bà", "I love my grandmother."),
+            v("mother", "/ˈmʌðə(r)/", "mẹ", "My mother is a nurse.", "Mẹ tôi là y tá."),
+            v("father", "/ˈfɑːðə(r)/", "bố", "My father works in an office.", "Bố tôi làm việc ở văn phòng."),
+            v("brother", "/ˈbrʌðə(r)/", "anh trai, em trai", "I have two brothers.", "Tôi có hai anh trai."),
+            v("sister", "/ˈsɪstə(r)/", "chị gái, em gái", "She has one sister.", "Cô ấy có một chị gái."),
+            v("parents", "/ˈpeərənts/", "bố mẹ", "My parents are teachers.", "Bố mẹ tôi là giáo viên."),
+            v("grandmother", "/ˈɡrænmʌðə(r)/", "bà", "I love my grandmother.", "Tôi rất yêu bà tôi."),
           ],
           exercises: [
             mc(
@@ -208,13 +282,28 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Miêu tả người (my, his, her...)",
+          grammar: {
+            title: "Tính từ sở hữu",
+            intro:
+              "Tính từ sở hữu đứng **trước danh từ**: my (của tôi), your (của bạn), his (của anh ấy), her (của cô ấy), our (của chúng tôi), their (của họ).",
+            patterns: [
+              "**my / your / his / her / our / their** + danh từ",
+              "Danh từ + **be** + tính từ: His hair **is** black.",
+            ],
+            examples: [
+              { en: "Her hair is short.", vi: "Tóc cô ấy ngắn." },
+              { en: "Our teacher is young.", vi: "Thầy giáo của chúng tôi còn trẻ." },
+              { en: "Their eyes are brown.", vi: "Mắt của họ màu nâu." },
+            ],
+            avoid: { wrong: "This is Lan. His hair is long.", fix: "Lan là nữ nên dùng *her*: Her hair is long." },
+          },
           vocab: [
-            v("tall", "/tɔːl/", "cao", "My brother is tall."),
-            v("short", "/ʃɔːt/", "thấp; ngắn", "Her hair is short."),
-            v("young", "/jʌŋ/", "trẻ", "Our teacher is young."),
-            v("kind", "/kaɪnd/", "tốt bụng", "Your mother is very kind."),
-            v("hair", "/heə(r)/", "tóc", "His hair is black."),
-            v("eyes", "/aɪz/", "đôi mắt", "Their eyes are brown."),
+            v("tall", "/tɔːl/", "cao", "My brother is tall.", "Anh trai tôi cao."),
+            v("short", "/ʃɔːt/", "thấp; ngắn", "Her hair is short.", "Tóc cô ấy ngắn."),
+            v("young", "/jʌŋ/", "trẻ", "Our teacher is young.", "Thầy giáo của chúng tôi còn trẻ."),
+            v("kind", "/kaɪnd/", "tốt bụng", "Your mother is very kind.", "Mẹ bạn rất tốt bụng."),
+            v("hair", "/heə(r)/", "tóc", "His hair is black.", "Tóc anh ấy màu đen."),
+            v("eyes", "/aɪz/", "đôi mắt", "Their eyes are brown.", "Mắt của họ màu nâu."),
           ],
           exercises: [
             mc("This is Lan. ___ hair is long.", ["Her", "His", "Their", "My"], "Lan là nữ nên dùng her (của cô ấy)."),
@@ -231,13 +320,42 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Ngôi nhà (there is/there are)",
+          grammar: {
+            title: "There is / There are: có …",
+            intro: "Dùng **there is / there are** để nói ở một nơi nào đó **có** cái gì.",
+            patterns: [
+              "**There is** + a/an + danh từ số ít",
+              "**There are** + danh từ số nhiều",
+              "Câu hỏi: **Is there** …? / **Are there** …?",
+            ],
+            examples: [
+              { en: "There is a bed in the bedroom.", vi: "Có một cái giường trong phòng ngủ." },
+              { en: "There are four rooms in my house.", vi: "Nhà tôi có bốn phòng." },
+            ],
+            avoid: {
+              wrong: "In my house have three bedrooms.",
+              fix: "Không dịch “có” thành *have* ở đây: There are three bedrooms in my house.",
+            },
+          },
           vocab: [
-            v("house", "/haʊs/", "ngôi nhà", "My house is small."),
-            v("room", "/ruːm/", "căn phòng", "There are four rooms in my house."),
-            v("kitchen", "/ˈkɪtʃɪn/", "nhà bếp", "My mother is in the kitchen."),
-            v("bedroom", "/ˈbedruːm/", "phòng ngủ", "There is a bed in the bedroom."),
-            v("bathroom", "/ˈbɑːθruːm/", "phòng tắm", "The bathroom is next to my bedroom."),
-            v("living room", "/ˈlɪvɪŋ ruːm/", "phòng khách", "We watch TV in the living room."),
+            v("house", "/haʊs/", "ngôi nhà", "My house is small.", "Nhà tôi nhỏ."),
+            v("room", "/ruːm/", "căn phòng", "There are four rooms in my house.", "Nhà tôi có bốn phòng."),
+            v("kitchen", "/ˈkɪtʃɪn/", "nhà bếp", "My mother is in the kitchen.", "Mẹ tôi đang ở trong bếp."),
+            v("bedroom", "/ˈbedruːm/", "phòng ngủ", "There is a bed in the bedroom.", "Có một cái giường trong phòng ngủ."),
+            v(
+              "bathroom",
+              "/ˈbɑːθruːm/",
+              "phòng tắm",
+              "The bathroom is next to my bedroom.",
+              "Phòng tắm ở cạnh phòng ngủ của tôi.",
+            ),
+            v(
+              "living room",
+              "/ˈlɪvɪŋ ruːm/",
+              "phòng khách",
+              "We watch TV in the living room.",
+              "Chúng tôi xem TV trong phòng khách.",
+            ),
           ],
           exercises: [
             mc(
@@ -254,13 +372,27 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Vị trí đồ vật (in, on, under...)",
+          grammar: {
+            title: "Giới từ chỉ vị trí",
+            intro: "Giới từ chỉ vị trí đứng **trước** danh từ chỉ nơi chốn, thường đi sau **be**.",
+            patterns: [
+              "**in** (trong) · **on** (trên mặt) · **under** (dưới)",
+              "**next to** (bên cạnh) · **behind** (phía sau) · **between** A **and** B (ở giữa)",
+            ],
+            examples: [
+              { en: "The cat is in the box.", vi: "Con mèo ở trong hộp." },
+              { en: "The shoes are under the bed.", vi: "Đôi giày ở dưới gầm giường." },
+              { en: "I sit between Lan and Minh.", vi: "Tôi ngồi giữa Lan và Minh." },
+            ],
+            avoid: { wrong: "The bank is next the school.", fix: "next to luôn có *to*: next to the school." },
+          },
           vocab: [
-            v("in", "/ɪn/", "ở trong", "The cat is in the box."),
-            v("on", "/ɒn/", "ở trên (bề mặt)", "The book is on the table."),
-            v("under", "/ˈʌndə(r)/", "ở dưới", "The shoes are under the bed."),
-            v("next to", "/ˈnekst tə/", "bên cạnh", "The bank is next to the school."),
-            v("behind", "/bɪˈhaɪnd/", "phía sau", "The garden is behind the house."),
-            v("between", "/bɪˈtwiːn/", "ở giữa", "I sit between Lan and Minh."),
+            v("in", "/ɪn/", "ở trong", "The cat is in the box.", "Con mèo ở trong hộp."),
+            v("on", "/ɒn/", "ở trên (bề mặt)", "The book is on the table.", "Quyển sách ở trên bàn."),
+            v("under", "/ˈʌndə(r)/", "ở dưới", "The shoes are under the bed.", "Đôi giày ở dưới gầm giường."),
+            v("next to", "/ˈnekst tə/", "bên cạnh", "The bank is next to the school.", "Ngân hàng ở cạnh trường học."),
+            v("behind", "/bɪˈhaɪnd/", "phía sau", "The garden is behind the house.", "Khu vườn ở phía sau ngôi nhà."),
+            v("between", "/bɪˈtwiːn/", "ở giữa", "I sit between Lan and Minh.", "Tôi ngồi giữa Lan và Minh."),
           ],
           exercises: [
             mc("Con mèo nằm DƯỚI gầm bàn: The cat is ___ the table.", ["under", "in", "on", "behind"]),
@@ -273,13 +405,28 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Màu sắc",
+          grammar: {
+            title: "Vị trí của tính từ chỉ màu",
+            intro: "Tính từ (màu sắc) đứng **trước** danh từ, ngược với tiếng Việt, và không thêm -s ở số nhiều.",
+            patterns: [
+              "a/an + **màu** + danh từ: a red car",
+              "Danh từ + be + **màu**: The sky is blue.",
+              "Hỏi màu: **What colour is** …? – It's …",
+            ],
+            examples: [
+              { en: "It is a red car.", vi: "Đó là một chiếc ô tô màu đỏ." },
+              { en: "The leaves are green.", vi: "Những chiếc lá màu xanh lá." },
+              { en: "What colour is your bag? – It's black.", vi: "Cặp của bạn màu gì? – Màu đen." },
+            ],
+            avoid: { wrong: "I have two cars reds.", fix: "Màu đứng trước danh từ và không thêm -s: two red cars." },
+          },
           vocab: [
-            v("red", "/red/", "màu đỏ", "The apple is red."),
-            v("blue", "/bluː/", "màu xanh dương", "The sky is blue."),
-            v("green", "/ɡriːn/", "màu xanh lá", "The leaves are green."),
-            v("yellow", "/ˈjeləʊ/", "màu vàng", "The banana is yellow."),
-            v("black", "/blæk/", "màu đen", "My cat is black."),
-            v("white", "/waɪt/", "màu trắng", "The wall is white."),
+            v("red", "/red/", "màu đỏ", "The apple is red.", "Quả táo màu đỏ."),
+            v("blue", "/bluː/", "màu xanh dương", "The sky is blue.", "Bầu trời màu xanh."),
+            v("green", "/ɡriːn/", "màu xanh lá", "The leaves are green.", "Những chiếc lá màu xanh lá."),
+            v("yellow", "/ˈjeləʊ/", "màu vàng", "The banana is yellow.", "Quả chuối màu vàng."),
+            v("black", "/blæk/", "màu đen", "My cat is black.", "Con mèo của tôi màu đen."),
+            v("white", "/waɪt/", "màu trắng", "The wall is white.", "Bức tường màu trắng."),
           ],
           exercises: [
             mc("What colour is the sky? – It is ___.", ["blue", "red", "black", "green"]),
@@ -334,13 +481,34 @@ export const A1_A2_30_DAYS: SeedCourse = {
       lessons: [
         {
           title: "Giờ giấc",
+          grammar: {
+            title: "Hỏi và nói giờ",
+            intro: "Hỏi giờ bằng **What time is it?** Câu trả lời bắt đầu bằng **It is** (It's).",
+            patterns: [
+              "Giờ đúng: It's + giờ + **o'clock**",
+              "Giờ rưỡi: It's **half past** + giờ",
+              "15 phút: It's **a quarter past** + giờ (hơn) · **a quarter to** + giờ (kém)",
+            ],
+            examples: [
+              { en: "It is seven o'clock.", vi: "Bây giờ là bảy giờ đúng." },
+              { en: "It is half past six.", vi: "Bây giờ là sáu giờ rưỡi." },
+              { en: "It is a quarter past eight.", vi: "Bây giờ là tám giờ mười lăm." },
+            ],
+            avoid: { wrong: "It is six half.", fix: "Sáu giờ rưỡi là *half past six*." },
+          },
           vocab: [
-            v("o'clock", "/əˈklɒk/", "(… giờ) đúng", "It is seven o'clock."),
-            v("half past", "/hɑːf pɑːst/", "(… giờ) rưỡi", "It is half past six."),
-            v("quarter", "/ˈkwɔːtə(r)/", "mười lăm phút (một phần tư giờ)", "It is a quarter past eight."),
-            v("minute", "/ˈmɪnɪt/", "phút", "Wait a minute, please."),
-            v("hour", "/ˈaʊə(r)/", "giờ, tiếng đồng hồ", "I study for one hour."),
-            v("time", "/taɪm/", "thời gian; giờ", "What time is it?"),
+            v("o'clock", "/əˈklɒk/", "(… giờ) đúng", "It is seven o'clock.", "Bây giờ là bảy giờ đúng."),
+            v("half past", "/hɑːf pɑːst/", "(… giờ) rưỡi", "It is half past six.", "Bây giờ là sáu giờ rưỡi."),
+            v(
+              "quarter",
+              "/ˈkwɔːtə(r)/",
+              "mười lăm phút (một phần tư giờ)",
+              "It is a quarter past eight.",
+              "Bây giờ là tám giờ mười lăm.",
+            ),
+            v("minute", "/ˈmɪnɪt/", "phút", "Wait a minute, please.", "Làm ơn đợi một phút."),
+            v("hour", "/ˈaʊə(r)/", "giờ, tiếng đồng hồ", "I study for one hour.", "Tôi học trong một tiếng."),
+            v("time", "/taɪm/", "thời gian; giờ", "What time is it?", "Bây giờ là mấy giờ?"),
           ],
           exercises: [
             mc("7:00 đọc là:", ["seven o'clock", "half past seven", "seven past", "a quarter to seven"]),
@@ -361,13 +529,24 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Thói quen hằng ngày (hiện tại đơn)",
+          grammar: {
+            title: "Thì hiện tại đơn: thói quen",
+            intro:
+              "Dùng thì hiện tại đơn cho **thói quen, việc lặp lại** hằng ngày. Với I / You / We / They, động từ giữ **nguyên mẫu**.",
+            patterns: ["I / You / We / They + **động từ nguyên mẫu**", "**at** + giờ: at six o'clock"],
+            examples: [
+              { en: "I get up at six o'clock.", vi: "Tôi thức dậy lúc sáu giờ." },
+              { en: "They go to school by bike.", vi: "Họ đi học bằng xe đạp." },
+            ],
+            avoid: { wrong: "I getting up at six.", fix: "Thói quen dùng hiện tại đơn: I get up at six." },
+          },
           vocab: [
-            v("get up", "/ɡet ʌp/", "thức dậy", "I get up at six o'clock."),
-            v("have breakfast", "/hæv ˈbrekfəst/", "ăn sáng", "We have breakfast at home."),
-            v("go to school", "/ɡəʊ tə skuːl/", "đi học", "They go to school by bike."),
-            v("go to work", "/ɡəʊ tə wɜːk/", "đi làm", "My parents go to work at seven."),
-            v("have lunch", "/hæv lʌntʃ/", "ăn trưa", "I have lunch at twelve o'clock."),
-            v("go to bed", "/ɡəʊ tə bed/", "đi ngủ", "I go to bed at ten."),
+            v("get up", "/ɡet ʌp/", "thức dậy", "I get up at six o'clock.", "Tôi thức dậy lúc sáu giờ."),
+            v("have breakfast", "/hæv ˈbrekfəst/", "ăn sáng", "We have breakfast at home.", "Chúng tôi ăn sáng ở nhà."),
+            v("go to school", "/ɡəʊ tə skuːl/", "đi học", "They go to school by bike.", "Họ đi học bằng xe đạp."),
+            v("go to work", "/ɡəʊ tə wɜːk/", "đi làm", "My parents go to work at seven.", "Bố mẹ tôi đi làm lúc bảy giờ."),
+            v("have lunch", "/hæv lʌntʃ/", "ăn trưa", "I have lunch at twelve o'clock.", "Tôi ăn trưa lúc mười hai giờ."),
+            v("go to bed", "/ɡəʊ tə bed/", "đi ngủ", "I go to bed at ten.", "Tôi đi ngủ lúc mười giờ."),
           ],
           exercises: [
             mc(
@@ -384,13 +563,29 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Hiện tại đơn với he/she/it",
+          grammar: {
+            title: "Hiện tại đơn với he / she / it",
+            intro:
+              "Chủ ngữ **he / she / it** (hoặc một người, một vật) thì động từ thêm **-s/-es**. Câu phủ định và câu hỏi dùng **does**, động từ trở về nguyên mẫu.",
+            patterns: [
+              "He / She + V**-s**: works, plays · V**-es** sau -ch, -sh, -s, -x, -o: watches, goes",
+              "Phụ âm + y → **-ies**: study → studies",
+              "Phủ định: **doesn't** + V · Câu hỏi: **Does** + S + V …?",
+            ],
+            examples: [
+              { en: "She lives in Da Nang.", vi: "Cô ấy sống ở Đà Nẵng." },
+              { en: "He doesn't like coffee.", vi: "Anh ấy không thích cà phê." },
+              { en: "Does she work in an office?", vi: "Cô ấy có làm việc ở văn phòng không?" },
+            ],
+            avoid: { wrong: "He doesn't likes coffee.", fix: "Sau doesn't, động từ ở nguyên mẫu: He doesn't like coffee." },
+          },
           vocab: [
-            v("live", "/lɪv/", "sống", "She lives in Da Nang."),
-            v("work", "/wɜːk/", "làm việc", "He works in a hospital."),
-            v("study", "/ˈstʌdi/", "học", "They study English at school."),
-            v("watch", "/wɒtʃ/", "xem", "He watches TV every evening."),
-            v("play", "/pleɪ/", "chơi", "Nam plays football."),
-            v("like", "/laɪk/", "thích", "She likes music."),
+            v("live", "/lɪv/", "sống", "She lives in Da Nang.", "Cô ấy sống ở Đà Nẵng."),
+            v("work", "/wɜːk/", "làm việc", "He works in a hospital.", "Anh ấy làm việc ở bệnh viện."),
+            v("study", "/ˈstʌdi/", "học", "They study English at school.", "Họ học tiếng Anh ở trường."),
+            v("watch", "/wɒtʃ/", "xem", "He watches TV every evening.", "Tối nào anh ấy cũng xem TV."),
+            v("play", "/pleɪ/", "chơi", "Nam plays football.", "Nam chơi bóng đá."),
+            v("like", "/laɪk/", "thích", "She likes music.", "Cô ấy thích âm nhạc."),
           ],
           exercises: [
             mc("She ___ in Ho Chi Minh City.", ["lives", "live", "living", "is live"], "He/She/It: động từ thêm -s."),
@@ -421,13 +616,47 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Mức độ thường xuyên (always, never...)",
+          grammar: {
+            title: "Trạng từ tần suất",
+            intro:
+              "always (luôn luôn) → usually → often → sometimes → never (không bao giờ). Trạng từ tần suất đứng **trước động từ thường** và **sau be**.",
+            patterns: [
+              "S + **always / often …** + động từ thường",
+              "S + **be** + always / never …",
+              "**every day / every week** thường đứng cuối câu",
+            ],
+            examples: [
+              { en: "I always get up early.", vi: "Tôi luôn dậy sớm." },
+              { en: "She is never late.", vi: "Cô ấy không bao giờ đến muộn." },
+              { en: "I study English every day.", vi: "Tôi học tiếng Anh mỗi ngày." },
+            ],
+            avoid: { wrong: "I play often tennis.", fix: "Đặt trạng từ trước động từ thường: I often play tennis." },
+          },
           vocab: [
-            v("always", "/ˈɔːlweɪz/", "luôn luôn", "I always get up early."),
-            v("usually", "/ˈjuːʒuəli/", "thường thường", "She usually has breakfast at home."),
-            v("often", "/ˈɒfn/", "thường, hay", "We often play football."),
-            v("sometimes", "/ˈsʌmtaɪmz/", "thỉnh thoảng", "He sometimes goes to school late."),
-            v("never", "/ˈnevə(r)/", "không bao giờ", "My father never drinks coffee."),
-            v("every day", "/ˈevri deɪ/", "mỗi ngày", "I study English every day."),
+            v("always", "/ˈɔːlweɪz/", "luôn luôn", "I always get up early.", "Tôi luôn dậy sớm."),
+            v(
+              "usually",
+              "/ˈjuːʒuəli/",
+              "thường thường",
+              "She usually has breakfast at home.",
+              "Cô ấy thường ăn sáng ở nhà.",
+            ),
+            v("often", "/ˈɒfn/", "thường, hay", "We often play football.", "Chúng tôi hay chơi bóng đá."),
+            v(
+              "sometimes",
+              "/ˈsʌmtaɪmz/",
+              "thỉnh thoảng",
+              "He sometimes goes to school late.",
+              "Thỉnh thoảng cậu ấy đi học muộn.",
+            ),
+            v(
+              "never",
+              "/ˈnevə(r)/",
+              "không bao giờ",
+              "My father never drinks coffee.",
+              "Bố tôi không bao giờ uống cà phê.",
+            ),
+            v("every day", "/ˈevri deɪ/", "mỗi ngày", "I study English every day.", "Tôi học tiếng Anh mỗi ngày."),
           ],
           exercises: [
             mc(
@@ -449,13 +678,40 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Ngày trong tuần (in/on/at)",
+          grammar: {
+            title: "Giới từ chỉ thời gian: in / on / at",
+            intro: "Ba giới từ hay gặp nhất khi nói về thời gian. Tên thứ trong tuần luôn **viết hoa** chữ cái đầu.",
+            patterns: [
+              "**at** + giờ: at seven o'clock · at the weekend",
+              "**on** + thứ, ngày: on Monday, on Sunday",
+              "**in** + buổi, tháng, năm: in the morning, in May",
+            ],
+            examples: [
+              { en: "I go to school on Monday.", vi: "Tôi đi học vào thứ Hai." },
+              { en: "The film starts at eight o'clock.", vi: "Bộ phim bắt đầu lúc tám giờ." },
+              { en: "We watch TV in the evening.", vi: "Chúng tôi xem TV vào buổi tối." },
+            ],
+            avoid: { wrong: "I have English class in Monday.", fix: "Thứ trong tuần đi với *on*: on Monday." },
+          },
           vocab: [
-            v("Monday", "/ˈmʌndeɪ/", "thứ Hai", "I go to school on Monday."),
-            v("Saturday", "/ˈsætədeɪ/", "thứ Bảy", "We play football on Saturday."),
-            v("Sunday", "/ˈsʌndeɪ/", "Chủ nhật", "My family goes to the park on Sunday."),
-            v("weekend", "/ˌwiːkˈend/", "cuối tuần", "What do you do at the weekend?"),
-            v("morning", "/ˈmɔːnɪŋ/", "buổi sáng", "I study in the morning."),
-            v("evening", "/ˈiːvnɪŋ/", "buổi tối", "We watch TV in the evening."),
+            v("Monday", "/ˈmʌndeɪ/", "thứ Hai", "I go to school on Monday.", "Tôi đi học vào thứ Hai."),
+            v("Saturday", "/ˈsætədeɪ/", "thứ Bảy", "We play football on Saturday.", "Chúng tôi chơi bóng đá vào thứ Bảy."),
+            v(
+              "Sunday",
+              "/ˈsʌndeɪ/",
+              "Chủ nhật",
+              "My family goes to the park on Sunday.",
+              "Gia đình tôi đi công viên vào Chủ nhật.",
+            ),
+            v(
+              "weekend",
+              "/ˌwiːkˈend/",
+              "cuối tuần",
+              "What do you do at the weekend?",
+              "Bạn làm gì vào cuối tuần?",
+            ),
+            v("morning", "/ˈmɔːnɪŋ/", "buổi sáng", "I study in the morning.", "Tôi học vào buổi sáng."),
+            v("evening", "/ˈiːvnɪŋ/", "buổi tối", "We watch TV in the evening.", "Chúng tôi xem TV vào buổi tối."),
           ],
           exercises: [
             mc(
@@ -500,13 +756,35 @@ export const A1_A2_30_DAYS: SeedCourse = {
       lessons: [
         {
           title: "Đồ ăn thức uống (đếm được/không đếm được)",
+          grammar: {
+            title: "Danh từ đếm được và không đếm được",
+            intro:
+              "Danh từ **đếm được** có số ít, số nhiều (an egg, two apples). Danh từ **không đếm được** (water, milk, rice, bread) không dùng a/an và không thêm -s.",
+            patterns: [
+              "**a / an** + danh từ đếm được số ít",
+              "**some** + danh từ không đếm được hoặc số nhiều",
+              "Đếm bằng đơn vị: a glass **of** water, a piece **of** bread",
+            ],
+            examples: [
+              { en: "She eats an egg every morning.", vi: "Sáng nào cô ấy cũng ăn một quả trứng." },
+              { en: "Drink some water.", vi: "Uống chút nước đi." },
+              { en: "I have two pieces of bread.", vi: "Tôi có hai lát bánh mì." },
+            ],
+            avoid: { wrong: "Can I have a water and two breads?", fix: "Nói *some water* và *two pieces of bread*." },
+          },
           vocab: [
-            v("rice", "/raɪs/", "cơm, gạo", "We eat rice every day."),
-            v("bread", "/bred/", "bánh mì", "I have bread for breakfast."),
-            v("egg", "/eɡ/", "quả trứng", "She eats an egg every morning."),
-            v("apple", "/ˈæpl/", "quả táo", "An apple a day is good for you."),
-            v("water", "/ˈwɔːtə(r)/", "nước", "Drink some water."),
-            v("milk", "/mɪlk/", "sữa", "The children drink milk."),
+            v("rice", "/raɪs/", "cơm, gạo", "We eat rice every day.", "Chúng tôi ăn cơm mỗi ngày."),
+            v("bread", "/bred/", "bánh mì", "I have bread for breakfast.", "Tôi ăn bánh mì vào bữa sáng."),
+            v("egg", "/eɡ/", "quả trứng", "She eats an egg every morning.", "Sáng nào cô ấy cũng ăn một quả trứng."),
+            v(
+              "apple",
+              "/ˈæpl/",
+              "quả táo",
+              "An apple a day is good for you.",
+              "Mỗi ngày một quả táo rất tốt cho bạn.",
+            ),
+            v("water", "/ˈwɔːtə(r)/", "nước", "Drink some water.", "Uống chút nước đi."),
+            v("milk", "/mɪlk/", "sữa", "The children drink milk.", "Bọn trẻ uống sữa."),
           ],
           exercises: [
             mc("I eat ___ egg for breakfast.", ["an", "a", "some", "any"], "egg bắt đầu bằng nguyên âm nên dùng an."),
@@ -527,13 +805,35 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Gọi món (some/any, would like)",
+          grammar: {
+            title: "some / any và would like",
+            intro:
+              "**some** dùng trong câu khẳng định và khi mời, xin. **any** dùng trong câu hỏi và câu phủ định. **would like** là cách nói “muốn” lịch sự.",
+            patterns: [
+              "I **would like** (I'd like) + danh từ / to + V",
+              "There is **some** … · Is there **any** …? · There isn't **any** …",
+              "Xin lịch sự: **Can I have** …, please?",
+            ],
+            examples: [
+              { en: "I would like a cup of tea.", vi: "Tôi muốn một tách trà." },
+              { en: "We don't have any bread.", vi: "Chúng tôi không còn chút bánh mì nào." },
+              { en: "Can I have the bill, please?", vi: "Cho tôi xin hóa đơn." },
+            ],
+            avoid: { wrong: "Give me tea.", fix: "Khi gọi món nên nói lịch sự: I'd like a cup of tea, please." },
+          },
           vocab: [
-            v("menu", "/ˈmenjuː/", "thực đơn", "Can I see the menu, please?"),
-            v("order", "/ˈɔːdə(r)/", "gọi món", "Are you ready to order?"),
-            v("coffee", "/ˈkɒfi/", "cà phê", "A black coffee, please."),
-            v("tea", "/tiː/", "trà", "I would like a cup of tea."),
-            v("would like", "/wʊd laɪk/", "muốn (cách nói lịch sự)", "I would like some noodles."),
-            v("bill", "/bɪl/", "hóa đơn", "Can I have the bill, please?"),
+            v("menu", "/ˈmenjuː/", "thực đơn", "Can I see the menu, please?", "Cho tôi xem thực đơn được không?"),
+            v("order", "/ˈɔːdə(r)/", "gọi món", "Are you ready to order?", "Anh chị gọi món được chưa ạ?"),
+            v("coffee", "/ˈkɒfi/", "cà phê", "A black coffee, please.", "Cho tôi một cà phê đen."),
+            v("tea", "/tiː/", "trà", "I would like a cup of tea.", "Tôi muốn một tách trà."),
+            v(
+              "would like",
+              "/wʊd laɪk/",
+              "muốn (cách nói lịch sự)",
+              "I would like some noodles.",
+              "Tôi muốn ăn mì.",
+            ),
+            v("bill", "/bɪl/", "hóa đơn", "Can I have the bill, please?", "Cho tôi xin hóa đơn."),
           ],
           exercises: [
             mc(
@@ -564,13 +864,29 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Mua sắm (How much/How many)",
+          grammar: {
+            title: "How much / How many",
+            intro:
+              "**How many** + danh từ đếm được số nhiều để hỏi số lượng. **How much** + danh từ không đếm được, và dùng để **hỏi giá**.",
+            patterns: [
+              "How **many** + danh từ số nhiều …?",
+              "How **much** + danh từ không đếm được …?",
+              "Hỏi giá: How much **is** + 1 vật? · How much **are** + nhiều vật?",
+            ],
+            examples: [
+              { en: "How much is this bag?", vi: "Cái túi này giá bao nhiêu?" },
+              { en: "How many apples do you want?", vi: "Bạn muốn bao nhiêu quả táo?" },
+              { en: "How much are these shoes?", vi: "Đôi giày này giá bao nhiêu?" },
+            ],
+            avoid: { wrong: "How many money do you have?", fix: "money không đếm được: How much money do you have?" },
+          },
           vocab: [
-            v("price", "/praɪs/", "giá", "What is the price of this bag?"),
-            v("cheap", "/tʃiːp/", "rẻ", "These shoes are cheap."),
-            v("expensive", "/ɪkˈspensɪv/", "đắt", "The phone is very expensive."),
-            v("buy", "/baɪ/", "mua", "I want to buy a new bag."),
-            v("money", "/ˈmʌni/", "tiền", "I don't have much money."),
-            v("shop", "/ʃɒp/", "cửa hàng", "The shop opens at nine o'clock."),
+            v("price", "/praɪs/", "giá", "What is the price of this bag?", "Cái túi này giá bao nhiêu?"),
+            v("cheap", "/tʃiːp/", "rẻ", "These shoes are cheap.", "Đôi giày này rẻ."),
+            v("expensive", "/ɪkˈspensɪv/", "đắt", "The phone is very expensive.", "Chiếc điện thoại rất đắt."),
+            v("buy", "/baɪ/", "mua", "I want to buy a new bag.", "Tôi muốn mua một cái túi mới."),
+            v("money", "/ˈmʌni/", "tiền", "I don't have much money.", "Tôi không có nhiều tiền."),
+            v("shop", "/ʃɒp/", "cửa hàng", "The shop opens at nine o'clock.", "Cửa hàng mở cửa lúc chín giờ."),
           ],
           exercises: [
             mc(
@@ -591,13 +907,28 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Quần áo (hiện tại tiếp diễn)",
+          grammar: {
+            title: "Thì hiện tại tiếp diễn",
+            intro: "Dùng cho việc **đang diễn ra** ngay lúc nói (now, at the moment, Look!).",
+            patterns: [
+              "S + **am / is / are** + V**-ing**",
+              "wear → wearing · dance → danc**ing** (bỏ e) · run → ru**nn**ing (gấp đôi phụ âm)",
+              "Phủ định: is**n't** / are**n't** + V-ing",
+            ],
+            examples: [
+              { en: "She is wearing a red dress.", vi: "Cô ấy đang mặc một chiếc váy đỏ." },
+              { en: "They are playing football at the moment.", vi: "Lúc này họ đang chơi bóng đá." },
+              { en: "What are you wearing today?", vi: "Hôm nay bạn mặc gì?" },
+            ],
+            avoid: { wrong: "She wearing a dress.", fix: "Không được thiếu be: She *is* wearing a dress." },
+          },
           vocab: [
-            v("shirt", "/ʃɜːt/", "áo sơ mi", "He is wearing a white shirt."),
-            v("dress", "/dres/", "váy liền", "She is wearing a red dress."),
-            v("shoes", "/ʃuːz/", "đôi giày", "My shoes are new."),
-            v("jeans", "/dʒiːnz/", "quần bò", "I usually wear jeans."),
-            v("jacket", "/ˈdʒækɪt/", "áo khoác", "Take your jacket. It is cold."),
-            v("wear", "/weə(r)/", "mặc, đeo", "What are you wearing today?"),
+            v("shirt", "/ʃɜːt/", "áo sơ mi", "He is wearing a white shirt.", "Anh ấy đang mặc áo sơ mi trắng."),
+            v("dress", "/dres/", "váy liền", "She is wearing a red dress.", "Cô ấy đang mặc một chiếc váy đỏ."),
+            v("shoes", "/ʃuːz/", "đôi giày", "My shoes are new.", "Đôi giày của tôi còn mới."),
+            v("jeans", "/dʒiːnz/", "quần bò", "I usually wear jeans.", "Tôi thường mặc quần bò."),
+            v("jacket", "/ˈdʒækɪt/", "áo khoác", "Take your jacket. It is cold.", "Mang áo khoác theo nhé. Trời lạnh đấy."),
+            v("wear", "/weə(r)/", "mặc, đeo", "What are you wearing today?", "Hôm nay bạn mặc gì?"),
           ],
           exercises: [
             mc(
@@ -627,13 +958,29 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Khả năng và sở thích (can, like + V-ing)",
+          grammar: {
+            title: "can và like + V-ing",
+            intro:
+              "**can** (có thể, biết) nói về khả năng; sau can là **động từ nguyên mẫu** và can không thêm -s. **like + V-ing** nói về sở thích.",
+            patterns: [
+              "S + **can / can't** + V",
+              "**Can** + S + V …? – Yes, I can. / No, I can't.",
+              "S + **like(s)** + V**-ing**",
+            ],
+            examples: [
+              { en: "I can swim.", vi: "Tôi biết bơi." },
+              { en: "Can you ride a bike? – No, I can't.", vi: "Bạn biết đi xe đạp không? – Không, tôi không biết." },
+              { en: "She likes singing.", vi: "Cô ấy thích hát." },
+            ],
+            avoid: { wrong: "She cans sings.", fix: "Sau can là động từ nguyên mẫu: She can sing." },
+          },
           vocab: [
-            v("swim", "/swɪm/", "bơi", "I can swim."),
-            v("cook", "/kʊk/", "nấu ăn", "My father can cook very well."),
-            v("sing", "/sɪŋ/", "hát", "She likes singing."),
-            v("dance", "/dɑːns/", "nhảy, múa", "They can dance."),
-            v("draw", "/drɔː/", "vẽ", "My brother likes drawing."),
-            v("ride a bike", "/raɪd ə baɪk/", "đi xe đạp", "Can you ride a bike?"),
+            v("swim", "/swɪm/", "bơi", "I can swim.", "Tôi biết bơi."),
+            v("cook", "/kʊk/", "nấu ăn", "My father can cook very well.", "Bố tôi nấu ăn rất ngon."),
+            v("sing", "/sɪŋ/", "hát", "She likes singing.", "Cô ấy thích hát."),
+            v("dance", "/dɑːns/", "nhảy, múa", "They can dance.", "Họ biết nhảy."),
+            v("draw", "/drɔː/", "vẽ", "My brother likes drawing.", "Em trai tôi thích vẽ."),
+            v("ride a bike", "/raɪd ə baɪk/", "đi xe đạp", "Can you ride a bike?", "Bạn có biết đi xe đạp không?"),
           ],
           exercises: [
             mc(
@@ -674,13 +1021,29 @@ export const A1_A2_30_DAYS: SeedCourse = {
       lessons: [
         {
           title: "Hôm qua (was/were)",
+          grammar: {
+            title: "Quá khứ của to be: was / were",
+            intro:
+              "Nói về trạng thái trong quá khứ (yesterday, last week, … ago): **am / is → was**, **are → were**.",
+            patterns: [
+              "I / He / She / It **was** …",
+              "You / We / They **were** …",
+              "Phủ định: wasn't / weren't · Câu hỏi: **Were** you …? / **Was** he …?",
+            ],
+            examples: [
+              { en: "I was at home yesterday.", vi: "Hôm qua tôi ở nhà." },
+              { en: "They were tired after work.", vi: "Họ mệt sau giờ làm." },
+              { en: "When were you born? – I was born in 2005.", vi: "Bạn sinh năm nào? – Tôi sinh năm 2005." },
+            ],
+            avoid: { wrong: "I born in 2005.", fix: "Nói năm sinh luôn có *was*: I was born in 2005." },
+          },
           vocab: [
-            v("yesterday", "/ˈjestədeɪ/", "hôm qua", "I was at home yesterday."),
-            v("last week", "/lɑːst wiːk/", "tuần trước", "We were in Hue last week."),
-            v("ago", "/əˈɡəʊ/", "cách đây", "She was a student two years ago."),
-            v("born", "/bɔːn/", "được sinh ra", "I was born in 2005."),
-            v("tired", "/ˈtaɪəd/", "mệt", "They were tired after work."),
-            v("happy", "/ˈhæpi/", "vui vẻ", "He was very happy yesterday."),
+            v("yesterday", "/ˈjestədeɪ/", "hôm qua", "I was at home yesterday.", "Hôm qua tôi ở nhà."),
+            v("last week", "/lɑːst wiːk/", "tuần trước", "We were in Hue last week.", "Tuần trước chúng tôi ở Huế."),
+            v("ago", "/əˈɡəʊ/", "cách đây", "She was a student two years ago.", "Cách đây hai năm cô ấy còn là sinh viên."),
+            v("born", "/bɔːn/", "được sinh ra", "I was born in 2005.", "Tôi sinh năm 2005."),
+            v("tired", "/ˈtaɪəd/", "mệt", "They were tired after work.", "Họ mệt sau giờ làm."),
+            v("happy", "/ˈhæpi/", "vui vẻ", "He was very happy yesterday.", "Hôm qua anh ấy rất vui."),
           ],
           exercises: [
             mc("I ___ at home yesterday.", ["was", "were", "am", "is"], "Quá khứ của am/is là was."),
@@ -707,13 +1070,35 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Quá khứ đơn: động từ có quy tắc",
+          grammar: {
+            title: "Quá khứ đơn: thêm -ed",
+            intro:
+              "Thì quá khứ đơn dùng cho việc **đã xảy ra và đã kết thúc**. Động từ có quy tắc thêm **-ed**, giống nhau với mọi chủ ngữ.",
+            patterns: [
+              "V + **-ed**: clean → cleaned · live → live**d** · study → stud**ied**",
+              "Phủ định: **didn't** + V nguyên mẫu",
+              "Câu hỏi: **Did** + S + V nguyên mẫu …?",
+            ],
+            examples: [
+              { en: "I cleaned my room yesterday.", vi: "Hôm qua tôi đã dọn phòng." },
+              { en: "She didn't visit her aunt last week.", vi: "Tuần trước cô ấy không đến thăm dì." },
+              { en: "Did you watch TV last night?", vi: "Tối qua bạn có xem TV không?" },
+            ],
+            avoid: { wrong: "Did you watched TV?", fix: "Sau did, động từ ở nguyên mẫu: Did you watch TV?" },
+          },
           vocab: [
-            v("visit", "/ˈvɪzɪt/", "thăm", "We visited our grandparents last Sunday."),
-            v("clean", "/kliːn/", "dọn dẹp, lau chùi", "I cleaned my room yesterday."),
-            v("stay", "/steɪ/", "ở lại", "They stayed at home last weekend."),
-            v("listen", "/ˈlɪsn/", "nghe", "She listened to music last night."),
-            v("walk", "/wɔːk/", "đi bộ", "He walked to school yesterday."),
-            v("last night", "/lɑːst naɪt/", "tối qua", "I watched a film last night."),
+            v(
+              "visit",
+              "/ˈvɪzɪt/",
+              "thăm",
+              "We visited our grandparents last Sunday.",
+              "Chủ nhật tuần trước chúng tôi đã đến thăm ông bà.",
+            ),
+            v("clean", "/kliːn/", "dọn dẹp, lau chùi", "I cleaned my room yesterday.", "Hôm qua tôi đã dọn phòng."),
+            v("stay", "/steɪ/", "ở lại", "They stayed at home last weekend.", "Cuối tuần trước họ ở nhà."),
+            v("listen", "/ˈlɪsn/", "nghe", "She listened to music last night.", "Tối qua cô ấy đã nghe nhạc."),
+            v("walk", "/wɔːk/", "đi bộ", "He walked to school yesterday.", "Hôm qua cậu ấy đi bộ đến trường."),
+            v("last night", "/lɑːst naɪt/", "tối qua", "I watched a film last night.", "Tối qua tôi đã xem một bộ phim."),
           ],
           exercises: [
             mc("I ___ my room yesterday.", ["cleaned", "clean", "cleans", "cleaning"], "Động từ có quy tắc: thêm -ed."),
@@ -730,13 +1115,41 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Quá khứ đơn: động từ bất quy tắc",
+          grammar: {
+            title: "Động từ bất quy tắc",
+            intro:
+              "Nhiều động từ thông dụng **không thêm -ed** mà có dạng quá khứ riêng, cần học thuộc. Câu phủ định và câu hỏi vẫn dùng **did + nguyên mẫu**.",
+            patterns: [
+              "go → **went** · eat → **ate** · see → **saw**",
+              "buy → **bought** · have → **had** · take → **took**",
+              "Phủ định: didn't + **go** (không viết didn't went)",
+            ],
+            examples: [
+              { en: "I went to Hanoi last year.", vi: "Năm ngoái tôi đã đi Hà Nội." },
+              { en: "She bought a new dress.", vi: "Cô ấy đã mua một chiếc váy mới." },
+              { en: "We didn't eat breakfast.", vi: "Chúng tôi đã không ăn sáng." },
+            ],
+            avoid: { wrong: "Yesterday I buyed a bag.", fix: "buy là động từ bất quy tắc: Yesterday I bought a bag." },
+          },
           vocab: [
-            v("went", "/went/", "đã đi (quá khứ của go)", "I went to Hanoi last year."),
-            v("ate", "/eɪt/", "đã ăn (quá khứ của eat)", "We ate noodles for breakfast."),
-            v("saw", "/sɔː/", "đã thấy, đã xem (quá khứ của see)", "I saw a good film yesterday."),
-            v("bought", "/bɔːt/", "đã mua (quá khứ của buy)", "She bought a new dress."),
-            v("had", "/hæd/", "đã có, đã ăn (quá khứ của have)", "We had a great time."),
-            v("took", "/tʊk/", "đã lấy, đã chụp (quá khứ của take)", "He took many photos."),
+            v("went", "/went/", "đã đi (quá khứ của go)", "I went to Hanoi last year.", "Năm ngoái tôi đã đi Hà Nội."),
+            v(
+              "ate",
+              "/eɪt/",
+              "đã ăn (quá khứ của eat)",
+              "We ate noodles for breakfast.",
+              "Bữa sáng chúng tôi đã ăn mì.",
+            ),
+            v(
+              "saw",
+              "/sɔː/",
+              "đã thấy, đã xem (quá khứ của see)",
+              "I saw a good film yesterday.",
+              "Hôm qua tôi đã xem một bộ phim hay.",
+            ),
+            v("bought", "/bɔːt/", "đã mua (quá khứ của buy)", "She bought a new dress.", "Cô ấy đã mua một chiếc váy mới."),
+            v("had", "/hæd/", "đã có, đã ăn (quá khứ của have)", "We had a great time.", "Chúng tôi đã có khoảng thời gian rất vui."),
+            v("took", "/tʊk/", "đã lấy, đã chụp (quá khứ của take)", "He took many photos.", "Anh ấy đã chụp rất nhiều ảnh."),
           ],
           exercises: [
             mc("Quá khứ của \"go\" là:", ["went", "goed", "gone", "goes"]),
@@ -763,13 +1176,29 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "So sánh hơn và so sánh nhất",
+          grammar: {
+            title: "So sánh hơn và so sánh nhất",
+            intro:
+              "Tính từ **ngắn** (1 âm tiết) thêm -er / -est; tính từ **dài** dùng more / the most. Một số tính từ đặc biệt: good → better → the best.",
+            patterns: [
+              "So sánh hơn: tall**er** than · **more** beautiful than",
+              "So sánh nhất: **the** tall**est** · **the most** beautiful",
+              "big → bi**gg**er (gấp đôi phụ âm) · happy → happ**ier**",
+            ],
+            examples: [
+              { en: "A car is faster than a bike.", vi: "Ô tô nhanh hơn xe đạp." },
+              { en: "This is the smallest room.", vi: "Đây là căn phòng nhỏ nhất." },
+              { en: "She is the best student in my class.", vi: "Cô ấy là học sinh giỏi nhất lớp tôi." },
+            ],
+            avoid: { wrong: "A plane is more fast than a car.", fix: "Tính từ ngắn không dùng more: faster than." },
+          },
           vocab: [
-            v("big", "/bɪɡ/", "to, lớn", "An elephant is bigger than a horse."),
-            v("small", "/smɔːl/", "nhỏ", "This is the smallest room."),
-            v("fast", "/fɑːst/", "nhanh", "A car is faster than a bike."),
-            v("beautiful", "/ˈbjuːtɪfl/", "đẹp", "Ha Long Bay is very beautiful."),
-            v("good", "/ɡʊd/", "tốt, giỏi", "She is a good student."),
-            v("than", "/ðæn/", "hơn (dùng khi so sánh)", "My brother is taller than me."),
+            v("big", "/bɪɡ/", "to, lớn", "An elephant is bigger than a horse.", "Con voi to hơn con ngựa."),
+            v("small", "/smɔːl/", "nhỏ", "This is the smallest room.", "Đây là căn phòng nhỏ nhất."),
+            v("fast", "/fɑːst/", "nhanh", "A car is faster than a bike.", "Ô tô nhanh hơn xe đạp."),
+            v("beautiful", "/ˈbjuːtɪfl/", "đẹp", "Ha Long Bay is very beautiful.", "Vịnh Hạ Long rất đẹp."),
+            v("good", "/ɡʊd/", "tốt, giỏi", "She is a good student.", "Cô ấy là một học sinh giỏi."),
+            v("than", "/ðæn/", "hơn (dùng khi so sánh)", "My brother is taller than me.", "Anh trai tôi cao hơn tôi."),
           ],
           exercises: [
             mc(
@@ -790,13 +1219,46 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Kế hoạch du lịch (be going to)",
+          grammar: {
+            title: "be going to: kế hoạch, dự định",
+            intro: "Nói về **kế hoạch đã định** trong tương lai (tomorrow, next week, next month).",
+            patterns: [
+              "S + **am / is / are going to** + V nguyên mẫu",
+              "Phủ định: S + am / is / are **not** going to + V",
+              "Câu hỏi: **What are you going to** do …?",
+            ],
+            examples: [
+              { en: "I am going to buy a train ticket.", vi: "Tôi định mua vé tàu." },
+              { en: "We are going to visit Da Lat next month.", vi: "Tháng sau chúng tôi sẽ đi Đà Lạt." },
+              { en: "What are you going to do tomorrow?", vi: "Ngày mai bạn định làm gì?" },
+            ],
+            avoid: { wrong: "We going to travel.", fix: "Cần đủ be và to: We are going to travel." },
+          },
           vocab: [
-            v("travel", "/ˈtrævl/", "đi du lịch", "I love to travel."),
-            v("ticket", "/ˈtɪkɪt/", "vé", "I am going to buy a train ticket."),
-            v("hotel", "/həʊˈtel/", "khách sạn", "We are going to stay in a hotel."),
-            v("beach", "/biːtʃ/", "bãi biển", "They are going to swim at the beach."),
-            v("tomorrow", "/təˈmɒrəʊ/", "ngày mai", "What are you going to do tomorrow?"),
-            v("next", "/nekst/", "tới, kế tiếp", "We are going to visit Da Lat next month."),
+            v("travel", "/ˈtrævl/", "đi du lịch", "I love to travel.", "Tôi rất thích đi du lịch."),
+            v("ticket", "/ˈtɪkɪt/", "vé", "I am going to buy a train ticket.", "Tôi định mua vé tàu."),
+            v("hotel", "/həʊˈtel/", "khách sạn", "We are going to stay in a hotel.", "Chúng tôi định ở khách sạn."),
+            v(
+              "beach",
+              "/biːtʃ/",
+              "bãi biển",
+              "They are going to swim at the beach.",
+              "Họ định đi bơi ở bãi biển.",
+            ),
+            v(
+              "tomorrow",
+              "/təˈmɒrəʊ/",
+              "ngày mai",
+              "What are you going to do tomorrow?",
+              "Ngày mai bạn định làm gì?",
+            ),
+            v(
+              "next",
+              "/nekst/",
+              "tới, kế tiếp",
+              "We are going to visit Da Lat next month.",
+              "Tháng sau chúng tôi sẽ đi Đà Lạt.",
+            ),
           ],
           exercises: [
             mc(

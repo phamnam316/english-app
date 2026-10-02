@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+import { toast } from "sonner";
+
 import { api, toApiClientError } from "@/lib/api-client";
 import type {
   CheckAnswerResponse,
@@ -7,17 +9,18 @@ import type {
   LessonDetail,
   SubmitLessonResponse,
   VocabularyItem,
+  WordRating,
 } from "@/types/api";
 
 /**
- * Store cho 1 phiên học: từ vựng (flashcard) -> bài tập (quiz) -> hoàn thành.
+ * Store cho 1 phiên học: từ vựng -> ghi chú ngữ pháp (nếu có) -> bài tập (quiz) -> hoàn thành.
  *
  * Lưu ý với Next.js: store này ở cấp module nên dùng chung trên server giữa các request.
  * Nó an toàn vì dữ liệu chỉ được ghi trong useEffect / sự kiện click (chỉ chạy ở trình duyệt),
  * server luôn render với state rỗng ban đầu.
  */
 
-export type LessonPhase = "vocabulary" | "quiz" | "completed";
+export type LessonPhase = "vocabulary" | "grammar" | "quiz" | "completed";
 export type SubmitStatus = "idle" | "submitting" | "success" | "error";
 
 interface LessonData {
@@ -27,6 +30,10 @@ interface LessonData {
   phase: LessonPhase;
   /** Thẻ từ vựng đang xem */
   vocabIndex: number;
+  /** Từ xa nhất đã xem (để đánh dấu đã học trong dàn bài) */
+  maxVocabIndex: number;
+  /** vocabId -> mức nhớ tự đánh giá */
+  ratings: Record<string, WordRating | null>;
   /** Câu hỏi đang làm */
   currentIndex: number;
   /** quizId -> câu trả lời của user */
@@ -49,7 +56,13 @@ interface LessonData {
 interface LessonActions {
   setLesson: (lesson: LessonDetail) => void;
   goToVocab: (index: number) => void;
+  /** Sang phần ghi chú ngữ pháp (bài không có ghi chú thì vào thẳng bài tập) */
+  goToGrammar: () => void;
+  /** Hết phần từ vựng: sang ghi chú ngữ pháp nếu có, không thì vào bài tập */
+  finishVocabulary: () => void;
   startQuiz: () => void;
+  /** Lưu mức nhớ (cập nhật ngay trên giao diện, lỗi thì trả lại như cũ) */
+  rateWord: (vocabId: string, rating: WordRating | null) => Promise<void>;
   selectOption: (answer: string) => void;
   /** Gửi câu trả lời lên server chấm. Trả về kết quả, hoặc null nếu không có gì để kiểm tra */
   checkAnswer: () => Promise<CheckAnswerResponse | null>;
@@ -69,6 +82,8 @@ const initialState: LessonData = {
   exercises: [],
   phase: "vocabulary",
   vocabIndex: 0,
+  maxVocabIndex: 0,
+  ratings: {},
   currentIndex: 0,
   userAnswers: {},
   results: {},
@@ -117,15 +132,47 @@ export const useLessonStore = create<LessonStore>()((set, get) => ({
       lesson,
       vocabularies: lesson.vocabularies,
       exercises: lesson.exercises,
-      phase: hasVocab ? "vocabulary" : hasQuiz ? "quiz" : "completed",
-      isCompleted: !hasVocab && !hasQuiz,
+      ratings: Object.fromEntries(lesson.vocabularies.map((v) => [v.id, v.rating])),
+      phase: hasVocab ? "vocabulary" : lesson.grammarNote ? "grammar" : hasQuiz ? "quiz" : "completed",
+      isCompleted: !hasVocab && !lesson.grammarNote && !hasQuiz,
     });
   },
 
   goToVocab: (index) => {
     const { vocabularies } = get();
     if (vocabularies.length === 0) return;
-    set({ vocabIndex: Math.min(Math.max(index, 0), vocabularies.length - 1) });
+    const next = Math.min(Math.max(index, 0), vocabularies.length - 1);
+    set((state) => ({ phase: "vocabulary", vocabIndex: next, maxVocabIndex: Math.max(state.maxVocabIndex, next) }));
+  },
+
+  goToGrammar: () => {
+    const { lesson, vocabularies } = get();
+    if (!lesson?.grammarNote) {
+      get().startQuiz();
+      return;
+    }
+    set({ phase: "grammar", maxVocabIndex: Math.max(vocabularies.length - 1, 0) });
+  },
+
+  finishVocabulary: () => {
+    if (get().lesson?.grammarNote) get().goToGrammar();
+    else {
+      set((state) => ({ maxVocabIndex: Math.max(state.vocabularies.length - 1, 0) }));
+      get().startQuiz();
+    }
+  },
+
+  rateWord: async (vocabId, rating) => {
+    const vocab = get().vocabularies.find((v) => v.id === vocabId);
+    if (!vocab) return;
+    const previous = get().ratings[vocabId] ?? null;
+    set((state) => ({ ratings: { ...state.ratings, [vocabId]: rating } }));
+    try {
+      await api.rateWord({ word: vocab.word, rating });
+    } catch (error) {
+      set((state) => ({ ratings: { ...state.ratings, [vocabId]: previous } }));
+      toast.error(toApiClientError(error).message);
+    }
   },
 
   startQuiz: () => {
@@ -209,15 +256,17 @@ export const useLessonStore = create<LessonStore>()((set, get) => ({
   resetLesson: () => set(initialState),
 }));
 
-/** Phần trăm tiến độ của cả bài: mỗi thẻ từ vựng đã xem + mỗi câu đã kiểm tra là 1 bước */
+/** Phần trăm tiến độ của cả bài: mỗi thẻ từ vựng đã xem, phần ngữ pháp, mỗi câu đã kiểm tra là 1 bước */
 export function selectLessonProgress(state: LessonStore): number {
-  const totalSteps = state.vocabularies.length + state.exercises.length;
+  const grammarSteps = state.lesson?.grammarNote ? 1 : 0;
+  const totalSteps = state.vocabularies.length + grammarSteps + state.exercises.length;
   if (totalSteps === 0) return 0;
 
   const vocabDone = state.phase === "vocabulary" ? state.vocabIndex : state.vocabularies.length;
+  const grammarDone = state.phase === "quiz" || state.phase === "completed" ? grammarSteps : 0;
   let quizDone = 0;
   if (state.phase === "completed") quizDone = state.exercises.length;
   else if (state.phase === "quiz") quizDone = state.currentIndex + (state.isSubmitted ? 1 : 0);
 
-  return Math.round(((vocabDone + quizDone) / totalSteps) * 100);
+  return Math.round(((vocabDone + grammarDone + quizDone) / totalSteps) * 100);
 }

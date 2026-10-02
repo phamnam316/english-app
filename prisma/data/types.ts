@@ -1,5 +1,9 @@
 import type { Level, QuizType } from "@prisma/client";
 
+import type { GrammarNote } from "../../types/api";
+
+export type { GrammarNote };
+
 /** Kiểu dữ liệu nội dung khóa học dùng cho prisma/seed.ts */
 
 export interface SeedVocab {
@@ -7,6 +11,10 @@ export interface SeedVocab {
   phonetic?: string;
   meaning: string;
   example?: string;
+  /** Bản dịch tiếng Việt của câu ví dụ */
+  exampleVi?: string;
+  /** Cấp độ CEFR; bỏ trống thì seed tự tra trong bộ từ A1–A2 */
+  cefr?: string;
 }
 
 export interface SeedExercise {
@@ -23,6 +31,8 @@ export interface SeedLesson {
   title: string;
   /** Mặc định 10 XP */
   xp?: number;
+  /** Ghi chú ngữ pháp hiện giữa phần học từ và phần làm bài */
+  grammar?: GrammarNote;
   vocab: SeedVocab[];
   exercises: SeedExercise[];
 }
@@ -44,8 +54,8 @@ export interface SeedCourse {
 // Hàm tạo dữ liệu ngắn gọn
 // ---------------------------------------------------------------------------
 
-export function v(word: string, phonetic: string, meaning: string, example?: string): SeedVocab {
-  return { word, phonetic, meaning, example };
+export function v(word: string, phonetic: string, meaning: string, example?: string, exampleVi?: string): SeedVocab {
+  return { word, phonetic, meaning, example, exampleVi };
 }
 
 /** Băm chuỗi đơn giản, cố định giữa các lần chạy (để xáo đáp án không ngẫu nhiên) */
@@ -56,7 +66,7 @@ function hash(text: string): number {
 }
 
 /** Xáo cố định theo `seed` (cùng nội dung -> cùng thứ tự, seed lại không làm đổi dữ liệu) */
-function seededShuffle<T>(items: readonly T[], seed: string): T[] {
+export function seededShuffle<T>(items: readonly T[], seed: string): T[] {
   let state = hash(seed) || 1;
   const random = () => {
     // mulberry32

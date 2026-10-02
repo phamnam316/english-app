@@ -7,7 +7,7 @@ import { PracticeResult } from "@/components/practice/practice-result";
 import type { GamePhase, PracticeGameProps } from "@/components/practice/types";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useSpeech } from "@/hooks/use-speech";
-import { TIMED_ROUND_SECONDS, shuffle } from "@/lib/practice";
+import { TIMED_ROUND_SECONDS, shuffle, weightedShuffle } from "@/lib/practice";
 import { playCorrectSound, playWrongSound } from "@/lib/sounds";
 import { cn } from "@/lib/utils";
 import type { PracticeWord } from "@/types/api";
@@ -35,7 +35,7 @@ function createDrawer(words: PracticeWord[]) {
   return (count: number): PracticeWord[] => {
     const picked: PracticeWord[] = [];
     for (let attempts = 0; picked.length < count && attempts < words.length * 3; attempts++) {
-      if (deck.length === 0) deck = shuffle(words);
+      if (deck.length === 0) deck = weightedShuffle(words).reverse(); // pop() lấy từ cuối
       const word = deck.pop()!;
       const meaning = word.meaning.trim().toLowerCase();
       if (picked.some((p) => p.id === word.id || p.meaning.trim().toLowerCase() === meaning)) continue;
@@ -130,10 +130,10 @@ export function MatchGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
       {phase === "intro" && <PracticeIntro meta={meta} bestScore={bestScore} onStart={() => setPhase("playing")} />}
 
       {phase === "playing" && (
-        <div className="mx-auto w-full max-w-2xl flex-1 px-4 pt-4 pb-10">
+        <div className="mx-auto w-full max-w-2xl flex-1 px-4 pt-8 pb-10">
           <div className="flex items-center justify-between gap-3 text-sm">
             <p className="font-medium text-muted-foreground">Chạm 1 từ rồi chạm nghĩa của nó</p>
-            <p className="rounded-full bg-secondary px-3 py-1 font-semibold text-secondary-foreground tabular-nums">
+            <p className="rounded-sm bg-moss-soft px-2 py-0.5 font-semibold text-moss-strong tabular-nums">
               {score} cặp
             </p>
           </div>
@@ -151,10 +151,10 @@ export function MatchGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
                       disabled={state === "matched"}
                       onClick={() => onTap(side, tile)}
                       className={cn(
-                        "flex min-h-16 w-full items-center justify-center rounded-2xl border-2 px-3 py-2 text-center text-[15px] leading-snug font-medium outline-none transition-all duration-200 focus-visible:ring-[3px] focus-visible:ring-ring/50 sm:text-base",
-                        side === "left" && "font-heading font-semibold",
-                        state === "idle" && "border-border bg-card shadow-soft hover:border-primary/40",
-                        state === "selected" && "border-primary bg-secondary text-secondary-foreground",
+                        "flex min-h-16 w-full items-center justify-center rounded-md border px-3 py-2 text-center text-[15px] leading-snug font-medium outline-none transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:text-base",
+                        side === "left" && "font-serif text-[17px] sm:text-lg",
+                        state === "idle" && "border-line-strong bg-card hover:border-moss",
+                        state === "selected" && "border-2 border-moss bg-moss-soft text-moss-strong",
                         state === "wrong" && "animate-shake border-destructive bg-danger-soft text-destructive",
                         state === "matched" && "scale-95 border-success bg-success-soft text-success opacity-45",
                       )}

@@ -7,7 +7,7 @@ import { PracticeIntro, PracticeShell } from "@/components/practice/practice-she
 import { PracticeResult } from "@/components/practice/practice-result";
 import type { GamePhase, PracticeGameProps } from "@/components/practice/types";
 import { useCountdown } from "@/hooks/use-countdown";
-import { TIMED_ROUND_SECONDS, shuffle } from "@/lib/practice";
+import { TIMED_ROUND_SECONDS, shuffle, weightedShuffle } from "@/lib/practice";
 import { isTypingTarget } from "@/lib/dom";
 import { playCorrectSound, playWrongSound } from "@/lib/sounds";
 import { cn } from "@/lib/utils";
@@ -26,7 +26,8 @@ interface Question {
 
 function makeQuestion(words: PracticeWord[], key: number, previousId?: string): Question {
   const candidates = words.length > 1 ? words.filter((w) => w.id !== previousId) : words;
-  const word = candidates[Math.floor(Math.random() * candidates.length)];
+  // Từ chưa nhớ (tự đánh giá) được hỏi nhiều hơn
+  const [word] = weightedShuffle(candidates);
   const direction: Direction = Math.random() < 0.5 ? "en-vi" : "vi-en";
   const textOf = (w: PracticeWord) => (direction === "en-vi" ? w.meaning : w.word);
   const answer = textOf(word);
@@ -111,15 +112,15 @@ export function SpeedGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
       {phase === "intro" && <PracticeIntro meta={meta} bestScore={bestScore} onStart={() => setPhase("playing")} />}
 
       {phase === "playing" && (
-        <div className="mx-auto w-full max-w-xl flex-1 px-4 pt-4 pb-10">
+        <div className="mx-auto w-full max-w-xl flex-1 px-4 pt-8 pb-10">
           <div className="flex h-8 items-center justify-between gap-3 text-sm font-semibold">
-            <span className="rounded-full bg-secondary px-3 py-1 text-secondary-foreground tabular-nums">{score} điểm</span>
+            <span className="rounded-sm bg-moss-soft px-2 py-0.5 text-moss-strong tabular-nums">{score} điểm</span>
             {combo >= 3 && (
               <span
                 key={combo}
-                className="inline-flex items-center gap-1 rounded-full bg-streak-soft px-3 py-1 text-streak animate-in zoom-in-75 duration-200"
+                className="inline-flex items-center gap-1 rounded-sm bg-clay-soft px-2 py-0.5 text-clay-strong animate-in zoom-in-75 duration-200"
               >
-                <Flame aria-hidden className="size-4 fill-streak" />
+                <Flame aria-hidden className="size-4" />
                 Combo x{combo}
               </span>
             )}
@@ -128,18 +129,18 @@ export function SpeedGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
           <section
             key={question.key}
             aria-live="polite"
-            className="mt-4 rounded-[2rem] border border-border/70 bg-card px-6 py-9 text-center shadow-soft animate-in fade-in slide-in-from-right-4 duration-200 motion-reduce:animate-none"
+            className="mt-4 rounded-lg border border-line bg-card px-6 py-9 text-center animate-in fade-in slide-in-from-right-4 duration-200 motion-reduce:animate-none"
           >
             <p className="text-sm text-muted-foreground">{isEnVi ? "Nghĩa của từ này là gì?" : "Từ tiếng Anh nào có nghĩa là"}</p>
             <p
               className={cn(
-                "mt-2 font-heading font-semibold text-balance break-words",
-                isEnVi ? "text-4xl text-primary sm:text-5xl" : "text-2xl sm:text-3xl",
+                "mt-2 font-serif font-medium text-balance break-words",
+                isEnVi ? "text-5xl sm:text-6xl" : "text-2xl sm:text-3xl",
               )}
             >
               {isEnVi ? question.word.word : question.word.meaning}
             </p>
-            {isEnVi && question.word.phonetic && <p className="mt-1 text-muted-foreground">{question.word.phonetic}</p>}
+            {isEnVi && question.word.phonetic && <p className="mt-2 font-ipa text-muted-foreground">{question.word.phonetic}</p>}
           </section>
 
           <div role="group" aria-label="Các đáp án" className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -154,8 +155,8 @@ export function SpeedGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
                   disabled={reveal}
                   onClick={() => pick(option)}
                   className={cn(
-                    "flex min-h-14 items-center gap-3 rounded-2xl border-2 border-border bg-card px-4 py-3 text-left text-base font-medium shadow-soft outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-default",
-                    !reveal && "hover:border-primary/40 hover:bg-secondary/50",
+                    "flex min-h-14 items-center gap-3 rounded-md border border-line-strong bg-card px-4 py-3 text-left text-base font-medium outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-default",
+                    !reveal && "hover:border-moss",
                     reveal && isAnswer && "border-success bg-success-soft text-success",
                     reveal && isPicked && !isAnswer && "border-destructive bg-danger-soft text-destructive",
                     reveal && !isAnswer && !isPicked && "text-muted-foreground opacity-60",
@@ -163,7 +164,7 @@ export function SpeedGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
                 >
                   <span
                     aria-hidden
-                    className="grid size-7 shrink-0 place-items-center rounded-full border-2 border-current/25 text-xs font-semibold"
+                    className="grid size-6 shrink-0 place-items-center rounded-full border border-current/40 text-[12px] font-semibold"
                   >
                     {index + 1}
                   </span>

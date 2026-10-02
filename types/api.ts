@@ -32,6 +32,8 @@ export interface LessonSummary {
   title: string;
   order: number;
   xpReward: number;
+  vocabCount: number;
+  exerciseCount: number;
   /** Chưa đăng nhập hoặc chưa học: NOT_STARTED */
   status: ProgressStatus;
   score: number | null;
@@ -75,7 +77,30 @@ export interface VocabularyItem {
   phonetic: string | null;
   meaning: string;
   exampleSentence: string | null;
+  exampleTranslation: string | null;
+  /** Cấp độ CEFR của từ (A1, A2...) nếu có */
+  cefr: string | null;
   audioUrl: string | null;
+  /** Mức nhớ người học tự đánh giá; null nếu chưa đánh giá hoặc chưa đăng nhập */
+  rating: WordRating | null;
+}
+
+/** Mức nhớ tự đánh giá: 1 = Chưa nhớ, 2 = Hơi nhớ, 3 = Đã nhớ */
+export type WordRating = 1 | 2 | 3;
+
+/**
+ * Ghi chú ngữ pháp của bài học. Các chuỗi hỗ trợ đánh dấu đơn giản: **đậm**, *nghiêng*.
+ */
+export interface GrammarNote {
+  /** Tên điểm ngữ pháp, vd "Hỏi và nói tuổi" */
+  title: string;
+  /** 1–2 câu giải thích */
+  intro: string;
+  /** Công thức / mẫu câu, mỗi dòng 1 mẫu */
+  patterns: string[];
+  examples: Array<{ en: string; vi: string }>;
+  /** Lỗi hay gặp: câu sai (gạch ngang) + cách sửa */
+  avoid?: { wrong: string; fix: string };
 }
 
 /** Không chứa correctAnswer/explanation để user không xem được đáp án trước khi nộp */
@@ -104,9 +129,27 @@ export interface LessonDetail {
   xpReward: number;
   unit: { id: string; title: string; order: number };
   course: { id: string; title: string; level: Level };
+  grammarNote: GrammarNote | null;
   vocabularies: VocabularyItem[];
   exercises: ExerciseItem[];
   progress: LessonProgressInfo;
+  /** Bài kế tiếp trong khóa (để nút "Học bài tiếp"); null nếu là bài cuối */
+  nextLesson: { id: string; title: string } | null;
+}
+
+// ---------------------------------------------------------------------------
+// PUT /api/words/rating
+// ---------------------------------------------------------------------------
+
+export interface WordRatingRequest {
+  word: string;
+  /** null: bỏ đánh giá */
+  rating: WordRating | null;
+}
+
+export interface WordRatingResponse {
+  word: string;
+  rating: WordRating | null;
 }
 
 export interface LessonDetailResponse {
@@ -217,7 +260,11 @@ export interface PracticeWord {
   phonetic: string | null;
   meaning: string;
   exampleSentence: string | null;
+  exampleTranslation: string | null;
+  cefr: string | null;
   audioUrl: string | null;
+  /** Mức nhớ tự đánh giá; trò chơi ưu tiên từ chưa nhớ */
+  rating: WordRating | null;
 }
 
 export interface PracticeStats {

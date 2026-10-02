@@ -17,6 +17,8 @@ import type {
   SubmitLessonRequest,
   SubmitLessonResponse,
   TextToSpeechRequest,
+  WordRatingRequest,
+  WordRatingResponse,
 } from "@/types/api";
 
 export class ApiClientError extends Error {
@@ -109,6 +111,9 @@ export const api = {
   getPractice: (signal?: AbortSignal) => request<PracticeDataResponse>("/api/practice", { signal }),
 
   submitPractice: (body: PracticeResultRequest) => request<PracticeResultResponse>("/api/practice", postJson(body)),
+
+  rateWord: (body: WordRatingRequest) =>
+    request<WordRatingResponse>("/api/words/rating", { method: "PUT", body: JSON.stringify(body) }),
 
   getLeaderboard: (period: LeaderboardPeriod, signal?: AbortSignal) =>
     request<LeaderboardResponse>(`/api/leaderboard?period=${period}`, { signal }),

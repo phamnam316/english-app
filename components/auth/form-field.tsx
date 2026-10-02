@@ -31,7 +31,7 @@ export function FormField({ id, label, error, hint, className, type, ...props }:
           type={isPassword && isPasswordVisible ? "text" : type}
           aria-invalid={Boolean(error)}
           aria-describedby={describedBy}
-          className={cn("bg-surface-soft focus-visible:bg-card", isPassword && "pr-12", className)}
+          className={cn(isPassword && "pr-12", className)}
           {...props}
         />
         {isPassword && (
@@ -39,7 +39,7 @@ export function FormField({ id, label, error, hint, className, type, ...props }:
             type="button"
             onClick={() => setIsPasswordVisible((v) => !v)}
             aria-label={isPasswordVisible ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-            className="absolute inset-y-0 right-0 grid w-12 place-items-center rounded-r-xl text-muted-foreground outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            className="absolute inset-y-0 right-0 grid w-12 place-items-center rounded-r-md text-muted-foreground outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
           >
             {isPasswordVisible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </button>

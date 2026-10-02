@@ -4,128 +4,92 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Nhận diện hình ảnh theo bộ thiết kế "Mobile E-Learning App" (BrainByte) trên Figma:
- * - Tím #6E58FC là màu nhấn chính; navy #261F5A cho khối nổi bật (thẻ học tiếp, header chi tiết khóa học).
- * - Nền trắng, thẻ trắng bo góc lớn với bóng đổ tím rất nhẹ; chữ đậm vừa, không dùng chữ quá đậm.
- * - Ô thumbnail dùng các màu pastel (vàng, hồng cam, mint, xanh, đào, tím nhạt).
- * - Đỏ (destructive) chỉ dùng cho câu sai; xanh (success) chỉ dùng cho câu đúng.
+ * Nhận diện hình ảnh theo bản vẽ .kombai/canvas/english-app-redesign.canvas:
+ * - Nền giấy ngà (paper), thẻ trắng ngà (surface), chữ mực (ink). Phẳng, phân lớp bằng đường kẻ, ít đổ bóng.
+ * - Xanh rêu (moss) là màu hành động chính; đất nung (clay) để đánh dấu: bài đang học, XP, chỗ cần chú ý.
+ * - Đỏ gạch (destructive) chỉ dùng cho câu sai; xanh lá (success) chỉ cho câu đúng.
+ * - Chữ: Be Vietnam Pro cho giao diện, Newsreader (có serif) cho tiêu đề và từ vựng, Noto Sans cho phiên âm IPA.
+ * - Bo góc: 6px nút/ô chọn, 10px thẻ, 4px nhãn nhỏ.
  * Các biến tên chuẩn của shadcn/ui được giữ nguyên để component shadcn dùng được ngay.
  */
 :root {
-  --radius: 1rem;
+  --radius: 10px;
 
-  --background: #ffffff;
-  --foreground: #0d0a1d;
-  --card: #ffffff;
-  --card-foreground: #0d0a1d;
-  --popover: #ffffff;
-  --popover-foreground: #0d0a1d;
-  --primary: #6e58fc;
+  --paper: #f7f4ec;
+  --surface: #fffefa;
+  --ink: #292d27;
+  --moss: #52664b;
+  --moss-strong: #43553d;
+  --moss-soft: #e7ebdf;
+  --clay: #b96243;
+  --clay-strong: #9c4f35;
+  --clay-soft: #f5e6dc;
+  --line: #e2ded2;
+  --line-strong: #cfc9b9;
+  --panel: #efebe0;
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--moss);
   --primary-foreground: #ffffff;
-  --secondary: #f0eeff;
-  --secondary-foreground: #261f5a;
-  --muted: #f6f5fb;
-  --muted-foreground: #747189;
-  --accent: #f0eeff;
-  --accent-foreground: #261f5a;
-  --destructive: #e5484d;
-  --border: #efeef5;
-  --input: #e4e2ee;
-  --ring: #b1a4fd;
+  --secondary: var(--moss-soft);
+  --secondary-foreground: var(--moss-strong);
+  --muted: var(--panel);
+  --muted-foreground: #62665c;
+  --accent: var(--moss-soft);
+  --accent-foreground: var(--moss-strong);
+  --destructive: #a3402e;
+  --border: var(--line);
+  --input: var(--line-strong);
+  --ring: var(--moss);
 
-  /* Bảng màu của thiết kế */
-  --navy: #261f5a;
-  --navy-deep: #1e234b;
-  --navy-foreground: #ffffff;
-  --lavender: #e9e5ff;
-  --lilac: #b1a4fd;
-  /* Khung tím rất nhạt bao quanh thẻ nổi bật */
-  --surface-soft: #f8f7ff;
-
-  /* Ô thumbnail pastel: chữ/icon trên đó luôn dùng màu navy */
-  --tile-yellow: #ffd281;
-  --tile-salmon: #fcaea4;
-  --tile-mint: #d4f3ed;
-  --tile-blue: #9ac5f9;
-  --tile-peach: #ffdfc2;
-  --tile-lavender: #e9e5ff;
-  --tile-pink: #f9d3d6;
-  --tile-foreground: #261f5a;
-
-  /* Màu riêng của app */
-  --success: #13935c;
+  --success: #3e6a45;
   --success-foreground: #ffffff;
-  --success-soft: #e3f6ec;
-  --danger-soft: #fdebec;
-  --streak: #f2672e;
-  --streak-soft: #fff0e8;
-  --xp: #ffa502;
-  --xp-soft: #fff4dc;
-  --xp-strong: #9a5f00;
-  --beginner: #0d7355;
-  --beginner-soft: #d4f3ed;
-  --intermediate: #9a5f00;
-  --intermediate-soft: #fff1d6;
-  --advanced: #b0344f;
-  --advanced-soft: #fde4e7;
+  --success-soft: #e3ecdd;
+  --danger-soft: #f7e4de;
 
-  --soft-shadow: 0 14px 34px -14px rgb(38 31 90 / 0.18), 0 2px 8px -2px rgb(38 31 90 / 0.05);
+  --soft-shadow: 0 1px 2px rgb(41 45 39 / 0.04), 0 12px 32px -20px rgb(41 45 39 / 0.28);
 }
 
 .dark {
-  --background: #0d0a1d;
-  --foreground: #f1efff;
-  --card: #17132f;
-  --card-foreground: #f1efff;
-  --popover: #17132f;
-  --popover-foreground: #f1efff;
-  --primary: #8a76ff;
-  --primary-foreground: #0d0a1d;
-  --secondary: #241f45;
-  --secondary-foreground: #d9d3ff;
-  --muted: #1c1838;
-  --muted-foreground: #a3a0bd;
-  --accent: #241f45;
-  --accent-foreground: #d9d3ff;
-  --destructive: #ff6b6b;
-  --border: #2a2548;
-  --input: #342f58;
-  --ring: #8a76ff;
+  --paper: #171915;
+  --surface: #1f221c;
+  --ink: #ece8dc;
+  --moss: #9db592;
+  --moss-strong: #b8ccae;
+  --moss-soft: #283124;
+  --clay: #dc8b65;
+  --clay-strong: #eaa482;
+  --clay-soft: #3a2920;
+  --line: #32362d;
+  --line-strong: #464b3f;
+  --panel: #23261f;
 
-  --navy: #221c52;
-  --navy-deep: #17143d;
-  --navy-foreground: #ffffff;
-  --lavender: #2a2452;
-  --lilac: #8a76ff;
-  --surface-soft: #1a1636;
+  --primary-foreground: #141710;
+  --muted-foreground: #a9ac9f;
+  --destructive: #e5836c;
 
-  --success: #3ccf8e;
-  --success-foreground: #06291a;
-  --success-soft: rgb(60 207 142 / 0.14);
-  --danger-soft: rgb(255 107 107 / 0.14);
-  --streak: #ff8a57;
-  --streak-soft: rgb(255 138 87 / 0.14);
-  --xp: #ffb52e;
-  --xp-soft: rgb(255 181 46 / 0.14);
-  --xp-strong: #ffc85c;
-  --beginner: #6fe0bd;
-  --beginner-soft: rgb(111 224 189 / 0.14);
-  --intermediate: #ffc85c;
-  --intermediate-soft: rgb(255 200 92 / 0.14);
-  --advanced: #ff9bb0;
-  --advanced-soft: rgb(255 155 176 / 0.14);
+  --success: #91c393;
+  --success-foreground: #102010;
+  --success-soft: #213120;
+  --danger-soft: #3b231d;
 
-  --soft-shadow: 0 14px 34px -14px rgb(0 0 0 / 0.6), 0 2px 8px -2px rgb(0 0 0 / 0.3);
+  --soft-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px -20px rgb(0 0 0 / 0.7);
 }
 
 @theme inline {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-jakarta), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-display), Georgia, "Times New Roman", serif;
+  --font-ipa: var(--font-phonetic), "Noto Sans", "Segoe UI", sans-serif;
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: 4px;
+  --radius-md: 6px;
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: 14px;
 
   --shadow-soft: var(--soft-shadow);
 
@@ -148,37 +112,24 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --color-navy: var(--navy);
-  --color-navy-deep: var(--navy-deep);
-  --color-navy-foreground: var(--navy-foreground);
-  --color-lavender: var(--lavender);
-  --color-lilac: var(--lilac);
-  --color-surface-soft: var(--surface-soft);
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-moss: var(--moss);
+  --color-moss-strong: var(--moss-strong);
+  --color-moss-soft: var(--moss-soft);
+  --color-clay: var(--clay);
+  --color-clay-strong: var(--clay-strong);
+  --color-clay-soft: var(--clay-soft);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-panel: var(--panel);
 
-  --color-tile-yellow: var(--tile-yellow);
-  --color-tile-salmon: var(--tile-salmon);
-  --color-tile-mint: var(--tile-mint);
-  --color-tile-blue: var(--tile-blue);
-  --color-tile-peach: var(--tile-peach);
-  --color-tile-lavender: var(--tile-lavender);
-  --color-tile-pink: var(--tile-pink);
-  --color-tile-foreground: var(--tile-foreground);
 
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-success-soft: var(--success-soft);
   --color-danger-soft: var(--danger-soft);
-  --color-streak: var(--streak);
-  --color-streak-soft: var(--streak-soft);
-  --color-xp: var(--xp);
-  --color-xp-soft: var(--xp-soft);
-  --color-xp-strong: var(--xp-strong);
-  --color-beginner: var(--beginner);
-  --color-beginner-soft: var(--beginner-soft);
-  --color-intermediate: var(--intermediate);
-  --color-intermediate-soft: var(--intermediate-soft);
-  --color-advanced: var(--advanced);
-  --color-advanced-soft: var(--advanced-soft);
 }
 
 @layer base {
@@ -189,31 +140,35 @@
     @apply bg-background text-foreground;
   }
   h1,
-  h2,
-  h3 {
-    @apply font-heading tracking-[-0.01em];
+  h2 {
+    @apply font-serif font-medium tracking-[-0.01em];
   }
   /* Tailwind v4 không còn đặt con trỏ tay cho button */
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]) {
     cursor: pointer;
   }
+  ::selection {
+    background: var(--moss-soft);
+    color: var(--ink);
+  }
 }
 
-/* Header tím (trang đăng nhập/đăng ký), như màn "Category" của thiết kế */
-@utility bg-hero-purple {
-  background-color: #674df8;
-  background-image: linear-gradient(120deg, #624af6 0%, #6e58fc 55%, #7d69ff 100%);
+/* Dải ruy băng đánh dấu bài đang học (góc phải thẻ) */
+@utility ribbon {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
 }
 
-/* Khối navy (thẻ học tiếp, header chi tiết khóa học) */
-@utility bg-hero-navy {
-  background-color: var(--navy-deep);
-  background-image: linear-gradient(160deg, var(--navy) 0%, var(--navy-deep) 100%);
+/* Đường gạch chân màu đất nung cho từ đang học trong câu ví dụ */
+@utility word-mark {
+  text-decoration-line: underline;
+  text-decoration-color: var(--clay);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
 }
 
-/* Rung nhẹ khi chọn sai (trò chơi ghép cặp) */
 @theme {
+  /* Rung nhẹ khi chọn sai (trò chơi ghép cặp) */
   --animate-shake: shake 0.4s ease-in-out;
 
   @keyframes shake {

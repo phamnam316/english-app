@@ -50,6 +50,22 @@ export function getNextLesson(course: CourseSummary): NextLessonInfo | null {
   return null;
 }
 
+/** Tên chương gọn để hiển thị: "Làm quen (ngày 1–6)" -> "Làm quen" */
+export function shortUnitTitle(title: string): string {
+  return title.replace(/\s*\([^)]*\)\s*$/, "");
+}
+
+/** Thời gian học ước lượng của 1 bài (phút, làm tròn tới 5): ~1 phút mỗi từ, ~1,5 phút mỗi câu */
+export function estimateMinutes(vocabCount: number, exerciseCount: number): number {
+  return Math.max(5, Math.round((vocabCount + exerciseCount * 1.5) / 5) * 5);
+}
+
+/** Số thứ tự của bài trong cả khóa (bắt đầu từ 1), 0 nếu không có */
+export function lessonNumberInCourse(course: CourseSummary, lessonId: string): number {
+  const ids = course.units.flatMap((unit) => unit.lessons.map((l) => l.id));
+  return ids.indexOf(lessonId) + 1;
+}
+
 export type CourseStatus = "empty" | "not-started" | "in-progress" | "completed";
 
 export function getCourseStatus(course: CourseSummary): CourseStatus {

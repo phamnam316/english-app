@@ -11,7 +11,7 @@ import type { GamePhase, PracticeGameProps } from "@/components/practice/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSpeech } from "@/hooks/use-speech";
-import { shuffle } from "@/lib/practice";
+import { weightedShuffle } from "@/lib/practice";
 import { isAnswerCorrect } from "@/lib/scoring";
 import { playCorrectSound, playWrongSound } from "@/lib/sounds";
 import { praiseFor } from "@/lib/ui-constants";
@@ -31,7 +31,7 @@ function maskWord(word: string): string {
 /** Nghe & viết: máy đọc từ, người học gõ lại đúng chính tả */
 export function DictationGame({ meta, words, bestScore, skipIntro, onReplay, onSubmitted }: PracticeGameProps) {
   const { speak, isLoading } = useSpeech();
-  const [items] = useState(() => shuffle(words).slice(0, ROUND_SIZE));
+  const [items] = useState(() => weightedShuffle(words).slice(0, ROUND_SIZE));
   const [phase, setPhase] = useState<GamePhase>(skipIntro ? "playing" : "intro");
   const [index, setIndex] = useState(0);
   const [input, setInput] = useState("");
@@ -93,11 +93,11 @@ export function DictationGame({ meta, words, bestScore, skipIntro, onReplay, onS
                 type="button"
                 aria-label="Nghe lại"
                 onClick={() => play()}
-                className="grid size-24 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_18px_34px_-14px_var(--primary)] outline-none transition-transform hover:scale-105 focus-visible:ring-[3px] focus-visible:ring-ring active:scale-95"
+                className="grid size-24 place-items-center rounded-full bg-moss text-white outline-none transition-colors hover:bg-moss-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-moss dark:text-primary-foreground"
               >
                 <Volume2 className={cn("size-10", isLoading(item.word) && "animate-pulse")} />
               </button>
-              <Button variant="secondary" size="lg" className="rounded-full" onClick={() => play(0.7)}>
+              <Button variant="outline" size="lg" className="rounded-full" onClick={() => play(0.7)}>
                 <Snail className="size-5" />
                 Chậm
               </Button>
@@ -127,7 +127,7 @@ export function DictationGame({ meta, words, bestScore, skipIntro, onReplay, onS
                   }
                 }}
                 className={cn(
-                  "h-14 rounded-2xl border-2 bg-card text-center text-xl font-medium shadow-soft md:text-xl disabled:opacity-100",
+                  "h-14 text-center text-xl font-medium md:text-xl disabled:opacity-100",
                   result === true && "border-success bg-success-soft text-success",
                   result === false && "border-destructive bg-danger-soft text-destructive line-through decoration-2",
                 )}
@@ -136,8 +136,8 @@ export function DictationGame({ meta, words, bestScore, skipIntro, onReplay, onS
 
             <div className="mt-4 flex min-h-12 justify-center">
               {isHintShown ? (
-                <p className="rounded-2xl bg-surface-soft px-4 py-3 text-center text-sm">
-                  <span className="font-heading text-base font-semibold tracking-wider">{maskWord(item.word)}</span>
+                <p className="rounded-md border border-line bg-card px-4 py-3 text-center text-sm">
+                  <span className="font-serif text-lg tracking-wider">{maskWord(item.word)}</span>
                   <span className="text-muted-foreground"> · {item.meaning}</span>
                 </p>
               ) : (

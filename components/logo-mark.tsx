@@ -1,16 +1,16 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Logo: vòng tròn với "Aa" (ký hiệu quen thuộc của việc học chữ), như logo tròn của thiết kế.
- * `inverted`: dùng trên nền tím (vòng trắng, chữ tím).
+ * Logo: vòng tròn viền mảnh với "Aa" kiểu chữ có chân (ký hiệu quen thuộc của việc học chữ).
+ * `inverted`: dùng trên nền tối.
  */
 export function LogoMark({ className, inverted = false }: { className?: string; inverted?: boolean }) {
   return (
     <span
       aria-hidden
       className={cn(
-        "grid size-9 shrink-0 place-items-center rounded-full font-heading text-sm font-bold tracking-tight",
-        inverted ? "bg-white text-primary" : "bg-primary text-primary-foreground",
+        "grid size-9 shrink-0 place-items-center rounded-full border font-serif text-[15px] leading-none",
+        inverted ? "border-white/50 text-white" : "border-line-strong text-foreground",
         className,
       )}
     >

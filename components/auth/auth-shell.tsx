@@ -8,32 +8,71 @@ interface AuthShellProps {
 }
 
 /**
- * Khung trang đăng nhập / đăng ký theo màn "Category" của thiết kế: header tím với tiêu đề lớn,
- * nội dung nằm trên tấm nền trắng bo góc. Điện thoại: tấm nền kéo tới đáy màn hình.
- * Máy tính: header và tấm nền xếp giữa trang.
+ * Khung trang đăng nhập / đăng ký: máy tính có cột giới thiệu bên trái (một mục từ mẫu như trong bài học),
+ * form nằm trong thẻ bên phải. Điện thoại chỉ có logo và form.
  */
 export function AuthShell({ title, subtitle, children }: AuthShellProps) {
   return (
-    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-hero-purple sm:items-center sm:justify-center sm:px-4 sm:py-10">
-      {/* Vòng tròn trang trí trên nền tím */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-24 -right-20 size-72 rounded-full bg-white/10" />
-        <div className="absolute top-40 -left-16 size-40 rounded-full bg-white/5" />
-        <div className="absolute right-[12%] bottom-[-8rem] hidden size-96 rounded-full bg-white/5 sm:block" />
-      </div>
+    <div className="min-h-dvh bg-background">
+      <div className="mx-auto grid min-h-dvh max-w-[1180px] gap-8 px-4 pt-8 pb-12 sm:px-8 lg:grid-cols-[minmax(0,1fr)_440px] lg:items-center lg:gap-20">
+        <section aria-label={`Giới thiệu ${APP_NAME}`} className="hidden lg:block">
+          <Brand />
+          <p className="mt-12 max-w-lg font-serif text-[3.25rem] leading-[1.05] tracking-[-0.015em]">
+            Học tiếng Anh mỗi ngày, một bài ngắn.
+          </p>
+          <p className="mt-4 max-w-md text-[15px] leading-relaxed text-muted-foreground">
+            Từ vựng A1–A2 có phát âm, câu ví dụ có bản dịch, ghi chú ngữ pháp và trò chơi ôn tập.
+          </p>
 
-      <div className="relative w-full px-6 pt-10 pb-10 text-white sm:max-w-md sm:px-0 sm:pt-0 sm:pb-8">
-        <div className="flex items-center gap-2.5">
-          <LogoMark inverted className="size-10" />
-          <span className="font-heading text-xl font-semibold">{APP_NAME}</span>
+          <figure className="mt-10 max-w-lg rounded-lg border border-line bg-card px-8 py-7">
+            <figcaption className="text-[13px] font-medium text-muted-foreground">Từ của hôm nay</figcaption>
+            <p className="mt-2 font-serif text-[3.25rem] leading-none tracking-[-0.015em]">welcome</p>
+            <p className="mt-2 font-ipa text-lg text-muted-foreground">
+              /ˈwelkəm/ <span className="font-sans text-[13px]">· A1</span>
+            </p>
+            <div className="mt-5 border-t-2 border-foreground pt-4">
+              <p className="text-xl font-semibold">chào mừng; hoan nghênh</p>
+              <p className="mt-3 font-serif text-xl">
+                <span className="word-mark font-semibold">Welcome</span> to our school!
+              </p>
+              <p className="mt-1 text-[14px] text-muted-foreground">Chào mừng bạn đến với trường của chúng tôi!</p>
+            </div>
+          </figure>
+
+          <dl className="mt-8 grid max-w-lg grid-cols-3 divide-x divide-line border-y border-line py-4">
+            {[
+              ["2.307", "từ A1–A2"],
+              ["30", "ngày giáo án"],
+              ["5", "trò ôn tập"],
+            ].map(([value, label]) => (
+              <div key={label} className="flex flex-col-reverse px-4 first:pl-0">
+                <dt className="text-[13px] text-muted-foreground">{label}</dt>
+                <dd className="font-serif text-[2rem] leading-tight">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <div className="mx-auto w-full max-w-[440px]">
+          <div className="lg:hidden">
+            <Brand />
+          </div>
+          <div className="mt-8 rounded-lg border border-line bg-card p-6 sm:p-9 lg:mt-0">
+            <h1 className="text-[2.25rem] leading-[1.1] tracking-[-0.01em]">{title}</h1>
+            <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{subtitle}</p>
+            <div className="mt-7">{children}</div>
+          </div>
         </div>
-        <h1 className="mt-10 text-[2rem] leading-tight font-medium sm:mt-8">{title}</h1>
-        <p className="mt-1.5 text-white/80">{subtitle}</p>
-      </div>
-
-      <div className="relative flex-1 rounded-t-[2rem] bg-card px-6 pt-8 pb-[max(2.5rem,env(safe-area-inset-bottom))] sm:w-full sm:max-w-md sm:flex-none sm:rounded-[2rem] sm:p-8 sm:shadow-2xl">
-        {children}
       </div>
     </div>
+  );
+}
+
+function Brand() {
+  return (
+    <p className="flex items-center gap-2.5">
+      <LogoMark />
+      <span className="text-[15px] font-semibold">{APP_NAME}</span>
+    </p>
   );
 }

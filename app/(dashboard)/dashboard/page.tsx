@@ -2,106 +2,125 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { ArrowRight, BookOpen } from "lucide-react";
 
 import { AppHeader } from "@/components/app-header";
-import { ContinuePanel } from "@/components/dashboard/continue-panel";
-import { CourseCard } from "@/components/dashboard/course-card";
-import { ContinuePanelSkeleton, CourseGridSkeleton } from "@/components/dashboard/dashboard-skeleton";
+import { CourseListSkeleton, CourseRow } from "@/components/dashboard/course-card";
+import { ReviewPanel } from "@/components/dashboard/review-panel";
+import { TodayCard, TodayCardSkeleton } from "@/components/dashboard/today-card";
+import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
-import { PracticeModeMiniCard } from "@/components/practice/practice-mode-card";
+import { Button } from "@/components/ui/button";
 import { useApiQuery } from "@/hooks/use-api-query";
 import { api } from "@/lib/api-client";
-import { getCourseStatus } from "@/lib/course-progress";
-import { PRACTICE_MODES } from "@/lib/practice";
-import { cn } from "@/lib/utils";
+import { getCourseStatus, getNextLesson, pickContinueCourse, type NextLessonInfo } from "@/lib/course-progress";
+import { getGreetingName } from "@/lib/user-display";
+
+/** Bài ôn tập cuối chương đang học còn khóa -> nhắc người học khi nào mở */
+function reviewLockNote(next: NextLessonInfo | null) {
+  if (!next) return null;
+  const lessons = next.unit.lessons;
+  const last = lessons.at(-1);
+  if (!last || last.id === next.lesson.id || last.state !== "locked" || !/^(Ôn tập|Tổng ôn)/.test(last.title)) {
+    return null;
+  }
+  return {
+    title: last.title,
+    text: `là bài cuối chương ${next.unit.order}, mở sau khi bạn xong bài ${lessons.length - 1}.`,
+  };
+}
 
 export default function DashboardPage() {
   const { data: session } = useSession();
-  const { data, error, isLoading, refetch } = useApiQuery((signal) => api.getCourses(signal), []);
+  const courses = useApiQuery((signal) => api.getCourses(signal), []);
+  const practice = useApiQuery((signal) => api.getPractice(signal), [], { toastOnError: false });
 
-  const streak = session?.user?.streak ?? 0;
-  const courses = data?.courses ?? [];
-  // Thẻ "Học tiếp" chỉ có khi có ít nhất 1 khóa đã có bài
-  const showPanel = isLoading || courses.some((c) => getCourseStatus(c) !== "empty");
+  const list = courses.data?.courses ?? [];
+  const course = pickContinueCourse(list);
+  const next = course ? getNextLesson(course) : null;
+  const nextId = next?.lesson.id;
+  // Từ của bài sắp học (để xem trước trong thẻ "Bài hôm nay")
+  const preview = useApiQuery(
+    (signal) => (nextId ? api.getLesson(nextId, signal) : Promise.resolve(null)),
+    [nextId],
+    { toastOnError: false },
+  );
+
+  const withLessons = list.filter((c) => getCourseStatus(c) !== "empty");
+  const allDone = withLessons.length > 0 && withLessons.every((c) => getCourseStatus(c) === "completed");
+
+  let today: React.ReactNode;
+  if (courses.isLoading) today = <TodayCardSkeleton />;
+  else if (courses.error) {
+    today = <ErrorState title="Không tải được danh sách khóa học" error={courses.error} onRetry={courses.refetch} />;
+  } else if (course && next) {
+    today = (
+      <TodayCard
+        course={course}
+        next={next}
+        name={getGreetingName(session?.user)}
+        words={preview.data?.lesson.vocabularies ?? (preview.isLoading ? undefined : [])}
+      />
+    );
+  } else if (allDone) {
+    today = (
+      <EmptyState
+        title="Bạn đã học hết các khóa hiện có"
+        description="Giữ phong độ bằng các lượt ôn lại mỗi ngày, hoặc mở lại một khóa bất kỳ để làm lại bài."
+        action={
+          <Button asChild>
+            <Link href="/practice">Ôn lại từ đã học</Link>
+          </Button>
+        }
+      />
+    );
+  } else {
+    today = (
+      <EmptyState
+        title="Chưa có khóa học nào được mở"
+        description="Khi quản trị viên đăng khóa học mới, khóa học sẽ xuất hiện ở đây."
+      />
+    );
+  }
 
   return (
     <>
       <AppHeader />
 
-      <main className="mx-auto w-full max-w-5xl px-5 pt-6 pb-28 sm:px-6 sm:pt-8 md:pb-16">
-        <div className="space-y-2">
-          <h1 className="text-[2rem] leading-[1.2] font-medium sm:text-5xl sm:leading-[1.15]">
-            Sẵn sàng cho
-            <br />
-            <span className="text-primary">bài học mới</span> hôm nay!
-          </h1>
-          <p className="text-sm text-muted-foreground sm:text-base">
-            {streak > 0
-              ? `Bạn đang giữ chuỗi ${streak} ngày học liên tiếp. Tiếp tục nhé!`
-              : "Học một bài hôm nay để bắt đầu chuỗi ngày học của bạn."}
-          </p>
+      <main className="mx-auto w-full max-w-[1180px] px-4 pt-8 pb-28 sm:px-8 sm:pt-12 md:pb-20">
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,1fr)] lg:gap-12">
+          <div>{today}</div>
+          <ReviewPanel
+            data={practice.data}
+            isLoading={practice.isLoading || courses.isLoading}
+            lockNote={reviewLockNote(next)}
+          />
         </div>
 
-        <div
-          className={cn(
-            "mt-8 grid gap-8",
-            showPanel && "lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-start lg:gap-10",
-          )}
-        >
-          {showPanel && (
-            <div>{isLoading ? <ContinuePanelSkeleton /> : data && <ContinuePanel courses={courses} />}</div>
-          )}
-
-          <section aria-labelledby="courses-heading" className="space-y-4">
-            <h2 id="courses-heading" className="text-lg font-semibold">
-              Khóa học của bạn
-            </h2>
-
-            {isLoading ? (
-              <CourseGridSkeleton />
-            ) : error ? (
-              <ErrorState title="Không tải được danh sách khóa học" error={error} onRetry={refetch} />
-            ) : courses.length === 0 ? (
-              <div className="flex flex-col items-center gap-3 rounded-3xl bg-surface-soft px-6 py-12 text-center">
-                <span className="grid size-14 place-items-center rounded-2xl bg-tile-lavender text-tile-foreground">
-                  <BookOpen className="size-7" />
-                </span>
-                <p className="font-semibold">Chưa có khóa học nào được mở</p>
-                <p className="max-w-sm text-sm text-muted-foreground">
-                  Khi quản trị viên đăng khóa học mới, khóa học sẽ xuất hiện ở đây.
-                </p>
-              </div>
+        {!courses.error && (
+          <section aria-labelledby="courses-heading" className="mt-16 sm:mt-20">
+            <div className="flex items-baseline justify-between gap-4 border-b-2 border-foreground pb-3">
+              <h2 id="courses-heading" className="text-[1.75rem] leading-tight">
+                Khóa học của bạn
+              </h2>
+              {!courses.isLoading && (
+                <span className="text-[15px] text-muted-foreground tabular-nums">{list.length} khóa</span>
+              )}
+            </div>
+            {courses.isLoading ? (
+              <CourseListSkeleton />
+            ) : list.length === 0 ? (
+              <p className="py-6 text-[15px] text-muted-foreground">Chưa có khóa học nào.</p>
             ) : (
-              <div className="space-y-3">
-                {courses.map((course) => (
-                  <CourseCard key={course.id} course={course} />
+              <ul>
+                {list.map((item) => (
+                  <li key={item.id} className="border-b border-line">
+                    <CourseRow course={item} />
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </section>
-        </div>
-
-        <section aria-labelledby="practice-heading" className="mt-10 space-y-4">
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 id="practice-heading" className="text-lg font-semibold">
-              Luyện tập nhanh
-            </h2>
-            <Link
-              href="/practice"
-              className="inline-flex items-center gap-1 rounded-full text-sm font-medium text-primary outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50"
-            >
-              Xem tất cả
-              <ArrowRight aria-hidden className="size-4" />
-            </Link>
-          </div>
-          {/* Điện thoại: cuộn ngang; máy tính: lưới */}
-          <div className="-mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-5">
-            {PRACTICE_MODES.map((meta) => (
-              <PracticeModeMiniCard key={meta.mode} meta={meta} />
-            ))}
-          </div>
-        </section>
+        )}
       </main>
     </>
   );

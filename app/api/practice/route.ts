@@ -9,6 +9,8 @@ import { withLessonStates } from "@/lib/course-progress";
 import { PRACTICE_DAILY_XP_CAP, practiceXp } from "@/lib/practice";
 import { getNextStreak, startOfVietnamDay } from "@/lib/streak";
 import { practiceResultSchema } from "@/lib/validations";
+import { wordKey } from "@/lib/word-rating";
+import { getWordRatings } from "@/lib/words";
 import type { PracticeDataResponse, PracticeResultResponse, PracticeWord } from "@/types/api";
 
 /** Đủ cho mọi trò chơi mà không gửi quá nhiều dữ liệu */
@@ -36,13 +38,22 @@ export async function GET() {
       withLessonStates(course).flatMap((unit) => unit.lessons.filter((l) => l.state !== "locked").map((l) => l.id)),
     );
 
-    const [vocabularies, todayXp, bestRows] = await Promise.all([
+    const [vocabularies, ratings, todayXp, bestRows] = await Promise.all([
       prisma.vocabulary.findMany({
         where: { lessonId: { in: unlockedLessonIds } },
         orderBy: [{ lessonId: "asc" }, { order: "asc" }],
-        take: MAX_WORDS * 2,
-        select: { id: true, word: true, phonetic: true, meaning: true, exampleSentence: true, audioUrl: true },
+        select: {
+          id: true,
+          word: true,
+          phonetic: true,
+          meaning: true,
+          exampleSentence: true,
+          exampleTranslation: true,
+          cefr: true,
+          audioUrl: true,
+        },
       }),
+      getWordRatings(user.id),
       getTodayPracticeXp(user.id, new Date()),
       prisma.activity.groupBy({
         by: ["mode"],
@@ -55,12 +66,15 @@ export async function GET() {
     const seen = new Set<string>();
     const words: PracticeWord[] = [];
     for (const vocab of vocabularies) {
-      const key = vocab.word.trim().toLowerCase();
+      const key = wordKey(vocab.word);
       if (seen.has(key)) continue;
       seen.add(key);
-      words.push(vocab);
-      if (words.length >= MAX_WORDS) break;
+      words.push({ ...vocab, rating: ratings.get(key) ?? null });
     }
+    // Quá nhiều từ thì giữ từ chưa nhớ / hơi nhớ / chưa đánh giá trước, từ "Đã nhớ" sau cùng
+    const priority = (word: PracticeWord) => (word.rating === null ? 2 : word.rating);
+    words.sort((a, b) => priority(a) - priority(b));
+    words.splice(MAX_WORDS);
 
     const bestScores: Partial<Record<PracticeMode, number>> = {};
     for (const row of bestRows) {

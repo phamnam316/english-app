@@ -7,42 +7,23 @@ interface LevelMeta {
   label: string;
   /** Khung năng lực CEFR tương ứng */
   cefr: string;
-  /** Màu badge cấp độ */
-  badgeClass: string;
-  /** Màu ô thumbnail pastel của khóa học khi chưa có ảnh */
-  tileClass: string;
 }
 
 export const LEVEL_META: Record<Level, LevelMeta> = {
   BEGINNER: {
     label: "Beginner",
     cefr: "A1–A2",
-    badgeClass: "border-transparent bg-beginner-soft text-beginner",
-    tileClass: "bg-tile-mint",
   },
   INTERMEDIATE: {
     label: "Intermediate",
     cefr: "B1–B2",
-    badgeClass: "border-transparent bg-intermediate-soft text-intermediate",
-    tileClass: "bg-tile-yellow",
   },
   ADVANCED: {
     label: "Advanced",
     cefr: "C1–C2",
-    badgeClass: "border-transparent bg-advanced-soft text-advanced",
-    tileClass: "bg-tile-salmon",
   },
 };
 
-/** Màu ô thumbnail của từng bài trong trang chi tiết khóa học (xoay vòng như thiết kế) */
-export const LESSON_TILE_CLASSES = [
-  "bg-tile-blue",
-  "bg-tile-lavender",
-  "bg-tile-peach",
-  "bg-tile-mint",
-  "bg-tile-pink",
-  "bg-tile-yellow",
-] as const;
 
 export const QUIZ_TYPE_LABEL: Record<QuizType, string> = {
   MULTIPLE_CHOICE: "Chọn đáp án đúng",

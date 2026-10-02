@@ -70,7 +70,7 @@ function LoginForm() {
   }
 
   return (
-    <AuthShell title="Chào mừng trở lại!" subtitle="Đăng nhập để học tiếp và giữ chuỗi ngày học của bạn.">
+    <AuthShell title="Chào mừng trở lại" subtitle="Đăng nhập để học tiếp và giữ chuỗi ngày học của bạn.">
       <div className="space-y-6">
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <FormField
@@ -94,7 +94,7 @@ function LoginForm() {
           />
 
           {formError && (
-            <p role="alert" className="rounded-xl bg-danger-soft px-3 py-2 text-sm font-medium text-destructive">
+            <p role="alert" className="rounded-md bg-danger-soft px-3 py-2.5 text-sm font-medium text-destructive">
               {formError}
             </p>
           )}
@@ -126,7 +126,7 @@ function LoginForm() {
 
         <p className="text-center text-sm text-muted-foreground">
           Chưa có tài khoản?{" "}
-          <Link href="/register" className="font-semibold text-primary hover:underline">
+          <Link href="/register" className="font-semibold text-moss-strong underline decoration-line-strong underline-offset-4 hover:decoration-moss">
             Đăng ký
           </Link>
         </p>

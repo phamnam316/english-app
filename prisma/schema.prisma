@@ -77,6 +77,7 @@ model User {
   sessions   Session[]
   progress   UserProgress[]
   activities Activity[]
+  reviews    WordReview[]
 }
 
 model Account {
@@ -150,6 +151,8 @@ model Lesson {
   title    String
   order    Int
   xpReward Int    @default(10)
+  /// Ghi chú ngữ pháp của bài (xem GrammarNote trong types/api.ts); null = bài không có
+  grammarNote Json?
   unitId   String
 
   unit         Unit           @relation(fields: [unitId], references: [id], onDelete: Cascade)
@@ -166,13 +169,18 @@ model Vocabulary {
   phonetic        String?
   meaning         String
   exampleSentence String?
+  /// Bản dịch tiếng Việt của câu ví dụ
+  exampleTranslation String?
   audioUrl        String?
+  /// Cấp độ CEFR (A1, A2...) với từ thuộc bộ từ vựng chuẩn: dùng để luyện tập theo bộ từ
+  cefr            String?
   order           Int     @default(0)
   lessonId        String
 
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@index([lessonId, order])
+  @@index([cefr])
 }
 
 model Exercise {
@@ -233,4 +241,19 @@ model Activity {
 
   @@index([userId, createdAt])
   @@index([createdAt])
+}
+
+/// Người học tự đánh giá mức nhớ 1 từ: 1 = Chưa nhớ, 2 = Hơi nhớ, 3 = Đã nhớ.
+/// Lưu theo chữ của từ (viết thường) chứ không theo id: 1 từ có thể nằm ở nhiều bài/khóa,
+/// và seed có thể tạo lại dòng Vocabulary khi cập nhật nội dung.
+model WordReview {
+  id        String   @id @default(cuid())
+  userId    String
+  word      String
+  rating    Int
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, word])
 }

@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError } from "@/lib/api-error";
+import { toGrammarNote, wordKey } from "@/lib/word-rating";
+import { getWordRatings } from "@/lib/words";
 import type { LessonDetailResponse } from "@/types/api";
 
 interface RouteContext {
@@ -18,7 +20,8 @@ function toOptions(value: unknown): string[] | null {
 
 /**
  * GET /api/lessons/[id]
- * Chi tiết 1 bài: từ vựng + câu hỏi (KHÔNG kèm đáp án/giải thích) + tiến độ của user.
+ * Chi tiết 1 bài: từ vựng (kèm mức nhớ của user) + ghi chú ngữ pháp + câu hỏi (KHÔNG kèm đáp án/giải thích)
+ * + tiến độ của user + bài kế tiếp trong khóa.
  *
  * 200 - { lesson }
  * 401 - Chưa đăng nhập
@@ -36,6 +39,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
         title: true,
         order: true,
         xpReward: true,
+        grammarNote: true,
         unit: {
           select: {
             id: true,
@@ -46,7 +50,16 @@ export async function GET(_request: Request, { params }: RouteContext) {
         },
         vocabularies: {
           orderBy: [{ order: "asc" }, { word: "asc" }],
-          select: { id: true, word: true, phonetic: true, meaning: true, exampleSentence: true, audioUrl: true },
+          select: {
+            id: true,
+            word: true,
+            phonetic: true,
+            meaning: true,
+            exampleSentence: true,
+            exampleTranslation: true,
+            cefr: true,
+            audioUrl: true,
+          },
         },
         exercises: {
           orderBy: { order: "asc" },
@@ -66,6 +79,20 @@ export async function GET(_request: Request, { params }: RouteContext) {
     const { course, ...unit } = lesson.unit;
     const progress = lesson.progress[0];
 
+    const [ratings, courseLessons] = await Promise.all([
+      getWordRatings(
+        user.id,
+        lesson.vocabularies.map((v) => v.word),
+      ),
+      prisma.lesson.findMany({
+        where: { unit: { courseId: course.id } },
+        orderBy: [{ unit: { order: "asc" } }, { order: "asc" }],
+        select: { id: true, title: true },
+      }),
+    ]);
+    const position = courseLessons.findIndex((l) => l.id === lesson.id);
+    const nextLesson = position >= 0 ? (courseLessons[position + 1] ?? null) : null;
+
     return NextResponse.json<LessonDetailResponse>({
       lesson: {
         id: lesson.id,
@@ -74,13 +101,18 @@ export async function GET(_request: Request, { params }: RouteContext) {
         xpReward: lesson.xpReward,
         unit,
         course: { id: course.id, title: course.title, level: course.level },
-        vocabularies: lesson.vocabularies,
+        grammarNote: toGrammarNote(lesson.grammarNote),
+        vocabularies: lesson.vocabularies.map((vocab) => ({
+          ...vocab,
+          rating: ratings.get(wordKey(vocab.word)) ?? null,
+        })),
         exercises: lesson.exercises.map((exercise) => ({ ...exercise, options: toOptions(exercise.options) })),
         progress: {
           status: progress?.status ?? "NOT_STARTED",
           score: progress?.score ?? null,
           completedAt: progress?.completedAt?.toISOString() ?? null,
         },
+        nextLesson,
       },
     });
   } catch (error) {

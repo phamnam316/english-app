@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LogIn, RefreshCcw, TriangleAlert, WifiOff } from "lucide-react";
+import { CircleAlert, LogIn, RefreshCcw, WifiOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { ApiClientError } from "@/lib/api-client";
@@ -33,31 +33,20 @@ export function ErrorState({
 }: ErrorStateProps) {
   const isOffline = error?.status === 0;
   const isUnauthorized = error?.status === 401;
-  const Icon = isOffline ? WifiOff : TriangleAlert;
+  const Icon = isOffline ? WifiOff : CircleAlert;
 
   return (
-    <div
-      role="alert"
-      className={cn(
-        "mx-auto flex w-full max-w-md flex-col items-center gap-4 rounded-3xl border border-border/70 bg-card px-6 py-10 text-center shadow-soft",
-        className,
-      )}
-    >
-      <span className="grid size-14 place-items-center rounded-2xl bg-danger-soft text-destructive">
-        <Icon className="size-7" />
-      </span>
-      <div className="space-y-1.5">
-        <h2 className="text-lg font-semibold">{title}</h2>
-        <p className="text-sm leading-relaxed text-muted-foreground">{description ?? error?.message}</p>
-      </div>
-      <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-center">
-        {backHref && (
-          <Button asChild variant="outline">
-            <Link href={backHref}>{backLabel}</Link>
-          </Button>
-        )}
+    <div role="alert" className={cn("w-full max-w-md rounded-lg border border-line bg-card p-6 sm:p-7", className)}>
+      <p className="flex items-start gap-2.5 text-lg leading-snug font-semibold text-destructive">
+        <Icon aria-hidden className="mt-1 size-[18px] shrink-0" />
+        {title}
+      </p>
+      <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
+        {description ?? error?.message ?? "Đã có lỗi xảy ra. Tiến độ học của bạn không bị mất."}
+      </p>
+      <div className="mt-5 flex flex-wrap gap-2">
         {isUnauthorized ? (
-          <Button asChild>
+          <Button asChild variant="outline">
             <Link href="/login">
               <LogIn />
               Đăng nhập lại
@@ -65,11 +54,16 @@ export function ErrorState({
           </Button>
         ) : (
           onRetry && (
-            <Button onClick={onRetry}>
+            <Button variant="outline" onClick={onRetry}>
               <RefreshCcw />
               {retryLabel}
             </Button>
           )
+        )}
+        {backHref && (
+          <Button asChild variant="ghost">
+            <Link href={backHref}>{backLabel}</Link>
+          </Button>
         )}
       </div>
     </div>

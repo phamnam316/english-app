@@ -106,7 +106,7 @@ export default function RegisterPage() {
           />
 
           {formError && (
-            <p role="alert" className="rounded-xl bg-danger-soft px-3 py-2 text-sm font-medium text-destructive">
+            <p role="alert" className="rounded-md bg-danger-soft px-3 py-2.5 text-sm font-medium text-destructive">
               {formError}
             </p>
           )}
@@ -119,7 +119,7 @@ export default function RegisterPage() {
 
         <p className="text-center text-sm text-muted-foreground">
           Đã có tài khoản?{" "}
-          <Link href="/login" className="font-semibold text-primary hover:underline">
+          <Link href="/login" className="font-semibold text-moss-strong underline decoration-line-strong underline-offset-4 hover:decoration-moss">
             Đăng nhập
           </Link>
         </p>
