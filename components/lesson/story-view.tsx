@@ -118,11 +118,11 @@ export function StoryView() {
                 <span
                   aria-hidden
                   className={cn(
-                    "grid size-9 shrink-0 place-items-center rounded-full text-[12px] font-semibold",
+                    "grid size-9 shrink-0 place-items-center rounded-full text-[14px] font-semibold",
                     colorOf(line.speaker),
                   )}
                 >
-                  {line.speaker.slice(0, 2)}
+                  {line.speaker.charAt(0)}
                 </span>
                 <button
                   type="button"
