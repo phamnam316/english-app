@@ -42,7 +42,7 @@ export default function VideoPage() {
             backLabel="Về danh sách video"
           />
         ) : data ? (
-          <VideoLesson clip={data.clip} canEdit={data.canEdit} />
+          <VideoLesson clip={data.clip} vocabulary={data.vocabulary} canEdit={data.canEdit} />
         ) : null}
       </main>
     </>

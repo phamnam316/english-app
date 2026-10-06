@@ -20,6 +20,7 @@ import {
   Save,
   Trash2,
   Undo2,
+  WandSparkles,
   X,
 } from "lucide-react";
 
@@ -29,7 +30,17 @@ import { invalidateApiCache } from "@/hooks/use-api-query";
 import { useYouTubePlayer } from "@/hooks/use-youtube-player";
 import { api, toApiClientError } from "@/lib/api-client";
 import { isInsideDialog, isInteractiveTarget, isTypingTarget } from "@/lib/dom";
-import { countCues, findActiveCue, formatClockPrecise, parseTranscript, toCues } from "@/lib/videos/subtitles";
+import { youtubeWatchUrl } from "@/lib/videos/catalog";
+import {
+  alignToTranscript,
+  countCues,
+  findActiveCue,
+  formatClockPrecise,
+  parseTimedTranscript,
+  parseTranscript,
+  segmentsToLines,
+  toCues,
+} from "@/lib/videos/subtitles";
 import { TRANSLATE_BATCH_SIZE } from "@/lib/videos/validations";
 import { cn } from "@/lib/utils";
 import type { SubtitleLine, VideoClipDetail } from "@/types/video";
@@ -98,6 +109,9 @@ export function SubtitleStudio({ clip }: { clip: VideoClipDetail }) {
   /** Người dùng vừa bấm vào trong khung YouTube: iframe giữ bàn phím nên Space không tới trang */
   const [isFrameFocused, setIsFrameFocused] = useState(false);
   const listRef = useRef<HTMLOListElement>(null);
+  /** Văn bản dán vào có mốc giờ (YouTube / SRT / VTT): đổi sang các nút tự căn giờ */
+  const timedSegments = useMemo(() => parseTimedTranscript(importText), [importText]);
+  const isTimedText = timedSegments.length >= 2;
 
   const player = useYouTubePlayer({ videoId: clip.youtubeId, startSec: clip.startSec, endSec: clip.endSec });
   const { status, setPlaybackRate } = player;
@@ -212,6 +226,44 @@ export function SubtitleStudio({ clip }: { clip: VideoClipDetail }) {
     toast.success(`Đã thêm ${parsed.length} câu.`);
   }
 
+  /** Dán bản chép lời có mốc giờ khi đã có lời thoại chuẩn: tự gán giờ cho từng câu */
+  function alignWithTimedTranscript() {
+    const result = alignToTranscript(lines, timedSegments);
+    if (!result) {
+      toast.error("Lời thoại hoặc bản chép lời quá dài để so khớp. Chỉ dán đoạn có trong clip rồi thử lại.");
+      return;
+    }
+    if (result.matched === 0) {
+      toast.error("Không khớp được câu nào. Kiểm tra bản chép lời có đúng của video này không.");
+      return;
+    }
+    commit(result.lines, result.lines.length);
+    setImportText("");
+    setIsImportOpen(false);
+    const timed = result.matched + result.estimated;
+    toast.success(
+      `Đã căn giờ ${timed} câu` +
+        (result.estimated > 0 ? `, trong đó ${result.estimated} câu là ước lượng (nên nghe lại)` : "") +
+        (result.outside > 0 ? `. ${result.outside} câu không thấy trong clip: kiểm tra rồi bấm Xóa câu chưa căn.` : "."),
+    );
+  }
+
+  /** Dùng luôn từng đoạn của bản chép lời có mốc giờ làm câu (khi không có lời thoại chuẩn) */
+  function importTimedSegments(mode: "replace" | "append") {
+    const parsed = segmentsToLines(timedSegments);
+    if (mode === "replace") commit(parsed, parsed.length);
+    else commit([...lines, ...parsed], lines.length + parsed.length);
+    setImportText("");
+    setIsImportOpen(false);
+    toast.success(`Đã thêm ${parsed.length} câu có sẵn giờ. Đọc lại để sửa chính tả, dấu câu trước khi lưu.`);
+  }
+
+  function removeUntimed() {
+    const kept = lines.filter((line) => line.start !== null);
+    commit(kept, kept.length);
+    toast.success(`Đã xóa ${lines.length - kept.length} câu chưa căn. Bấm Hoàn tác nếu xóa nhầm.`);
+  }
+
   async function translateMissing() {
     const targets = lines
       .map((line, index) => ({ index, en: line.en.trim() }))
@@ -317,6 +369,7 @@ export function SubtitleStudio({ clip }: { clip: VideoClipDetail }) {
   const activeCue = cues[findActiveCue(cues, player.time)];
   const activeLine = activeCue?.lineIndex ?? -1;
   const timedCount = countCues(lines);
+  const untimedCount = lines.length - timedCount;
   const missingVi = lines.filter((line) => line.en.trim() && !line.vi.trim()).length;
   const nextLine = lines[cursor];
 
@@ -457,6 +510,12 @@ export function SubtitleStudio({ clip }: { clip: VideoClipDetail }) {
             <FileText />
             Nhập lời thoại
           </Button>
+          {untimedCount > 0 && timedCount > 0 && (
+            <Button variant="ghost" onClick={removeUntimed}>
+              <Trash2 />
+              Xóa {untimedCount} câu chưa căn
+            </Button>
+          )}
           <p className="w-full text-[13px] text-muted-foreground" role="status">
             {isDirty
               ? "Có thay đổi chưa lưu (đã giữ bản nháp trong trình duyệt này)."
@@ -474,16 +533,21 @@ export function SubtitleStudio({ clip }: { clip: VideoClipDetail }) {
               <a href={clip.transcriptUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-moss-strong underline underline-offset-4">
                 lời thoại tập này trên We Bare Bears Wiki
               </a>
-              , chép đoạn có trong clip rồi dán vào ô Nhập lời thoại. Clip chỉ là 1 phần của tập phim.
+              , chép cả trang (hoặc đoạn có trong clip) rồi dán vào ô Nhập lời thoại → Tách thành câu.
+            </li>
+            <li>
+              Mở{" "}
+              <a href={youtubeWatchUrl(clip.youtubeId)} target="_blank" rel="noopener noreferrer" className="font-medium text-moss-strong underline underline-offset-4">
+                video trên YouTube
+              </a>
+              , bấm “...thêm” dưới video → “Hiện bản chép lời”, chọn hết phần lời trong khung bản chép lời, chép rồi dán vào ô Nhập
+              lời thoại → Tự căn giờ. Câu không có trong clip được bỏ giờ: bấm Xóa câu chưa căn.
             </li>
             <li>Bấm Dịch tự động để điền tiếng Việt, rồi đọc lại và sửa trực tiếp trong danh sách.</li>
             <li>
-              Bấm số thứ tự của câu đầu tiên có trong clip, phát video bằng nút Phát của trang (hoặc phím <Kbd>K</Kbd>, đừng bấm
-              vào trong khung video) và nhấn <Kbd>Space</Kbd> ngay khi mỗi câu bắt đầu. Câu không có trong clip thì xóa đi.
-            </li>
-            <li>
-              Nếu sau 1 câu là đoạn im lặng dài, nhấn <Kbd>E</Kbd> khi câu đó nói xong. Dùng nút ‹ › để chỉnh lệch 0,1 giây và ▶ để
-              nghe lại.
+              Phát thử bằng nút Phát của trang (hoặc phím <Kbd>K</Kbd>, đừng bấm vào trong khung video). Câu lệch giờ: chỉnh bằng ‹ ›
+              (0,1 giây), hoặc bấm số thứ tự của câu rồi nhấn <Kbd>Space</Kbd> đúng lúc câu bắt đầu. <Kbd>E</Kbd> đánh dấu câu kết
+              thúc khi sau đó là đoạn im lặng dài.
             </li>
             <li>Bấm Lưu phụ đề: người học thấy ngay. Bấm sai thì Hoàn tác (Ctrl+Z).</li>
           </ol>
@@ -503,19 +567,35 @@ export function SubtitleStudio({ clip }: { clip: VideoClipDetail }) {
                 </Button>
               )}
             </div>
-            <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
-              Mỗi dòng 1 câu, vd <code className="text-foreground">Grizzly: Hey guys!</code>. Phần mô tả trong [ngoặc vuông] tự
-              được bỏ. Có sẵn bản dịch thì viết <code className="text-foreground">câu tiếng Anh | bản dịch</code>.{" "}
-              <a
-                href={clip.transcriptUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-medium text-moss-strong underline-offset-4 hover:underline"
-              >
-                Mở lời thoại trên Wiki
-                <ExternalLink aria-hidden className="size-3" />
-              </a>
-            </p>
+            <ul className="mt-2 space-y-1.5 text-[14px] leading-relaxed text-muted-foreground">
+              <li>
+                <span className="font-medium text-foreground">Lời thoại chuẩn</span> (có người nói, đúng chính tả): mỗi dòng 1 câu, vd{" "}
+                <code className="text-foreground">Grizzly: Hey guys!</code>. Phần trong [ngoặc vuông] tự được bỏ; có sẵn bản dịch thì viết{" "}
+                <code className="text-foreground">câu tiếng Anh | bản dịch</code>.{" "}
+                <a
+                  href={clip.transcriptUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-medium text-moss-strong underline-offset-4 hover:underline"
+                >
+                  Mở lời thoại trên Wiki
+                  <ExternalLink aria-hidden className="size-3" />
+                </a>
+              </li>
+              <li>
+                <span className="font-medium text-foreground">Bản chép lời có mốc giờ</span> để tự căn giờ: trên YouTube bấm
+                “...thêm” dưới video → “Hiện bản chép lời”, chọn hết rồi chép (nhận cả nội dung file .srt / .vtt).{" "}
+                <a
+                  href={youtubeWatchUrl(clip.youtubeId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-medium text-moss-strong underline-offset-4 hover:underline"
+                >
+                  Mở video trên YouTube
+                  <ExternalLink aria-hidden className="size-3" />
+                </a>
+              </li>
+            </ul>
             <textarea
               value={importText}
               onChange={(event) => setImportText(event.target.value)}
@@ -524,16 +604,40 @@ export function SubtitleStudio({ clip }: { clip: VideoClipDetail }) {
               aria-label="Lời thoại"
               className="mt-3 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-[13px] leading-relaxed outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/25"
             />
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button onClick={() => importTranscript(lines.length > 0 ? "append" : "replace")} disabled={!importText.trim()}>
-                {lines.length > 0 ? "Thêm vào cuối" : "Tách thành câu"}
-              </Button>
-              {lines.length > 0 && (
-                <Button variant="outline" onClick={() => importTranscript("replace")} disabled={!importText.trim()}>
-                  Thay toàn bộ {lines.length} câu
+            {isTimedText ? (
+              <>
+                <p role="status" className="mt-3 text-[14px] font-medium text-moss-strong">
+                  Đã nhận ra bản chép lời có mốc giờ: {timedSegments.length} đoạn.
+                  {lines.length === 0 && " Nên dán lời thoại chuẩn trước, rồi dán bản này để tự căn giờ cho đúng chính tả."}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {lines.length > 0 ? (
+                    <>
+                      <Button onClick={alignWithTimedTranscript}>
+                        <WandSparkles />
+                        Tự căn giờ cho {lines.length} câu
+                      </Button>
+                      <Button variant="outline" onClick={() => importTimedSegments("append")}>
+                        Thêm {timedSegments.length} đoạn thành câu mới
+                      </Button>
+                    </>
+                  ) : (
+                    <Button onClick={() => importTimedSegments("replace")}>Dùng {timedSegments.length} đoạn làm câu</Button>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button onClick={() => importTranscript(lines.length > 0 ? "append" : "replace")} disabled={!importText.trim()}>
+                  {lines.length > 0 ? "Thêm vào cuối" : "Tách thành câu"}
                 </Button>
-              )}
-            </div>
+                {lines.length > 0 && (
+                  <Button variant="outline" onClick={() => importTranscript("replace")} disabled={!importText.trim()}>
+                    Thay toàn bộ {lines.length} câu
+                  </Button>
+                )}
+              </div>
+            )}
           </section>
         )}
 

@@ -41,12 +41,20 @@ Wiktionary (CC BY-SA 4.0) và Tatoeba (CC BY 2.0 FR).
 ## Xem phim
 
 - `/videos`: các clip ngắn We Bare Bears nhúng từ kênh YouTube chính thức (trình phát của YouTube, không tải video về),
-  kèm phụ đề song ngữ, bấm từ để tra nghĩa (bảng `Vocabulary`), phát lại / lặp câu, tự dừng sau mỗi câu, tốc độ chậm.
+  kèm phụ đề song ngữ, phát lại / lặp câu, tự dừng sau mỗi câu, tốc độ chậm.
+- Rê chuột (điện thoại: chạm) vào từ trong phụ đề: nghĩa lấy từ bảng `Vocabulary`, nghe phát âm, chọn mức nhớ để lưu từ
+  vào lịch ôn (`WordReview`); video tạm dừng trong lúc xem. Tab **Từ vựng** liệt kê các từ của bộ từ vựng có trong lời thoại
+  clip (`lib/videos/vocabulary.ts`). Từ lưu từ video được đưa vào trang Luyện tập khi đến hạn, kể cả khi chưa mở bài chứa từ đó.
 - Danh sách clip nằm trong `lib/videos/catalog.ts`. Trước khi thêm clip, mở
   `https://www.youtube.com/oembed?url=<link video>&format=json`: phải trả JSON của kênh chính thức (401 = video tắt nhúng).
-- Phụ đề do tài khoản `ADMIN` căn ở `/videos/<slug>/studio` (bảng `VideoSubtitle`): dán lời thoại chép từ trang Transcript
-  của We Bare Bears Wiki, bấm **Dịch tự động** (cần `OPENAI_API_KEY`; đổi model bằng `OPENAI_TRANSLATE_MODEL`, mặc định
-  `gpt-4.1-mini`), phát video và nhấn Space mỗi khi một câu bắt đầu, rồi **Lưu phụ đề**.
+- Phụ đề do tài khoản `ADMIN` làm ở `/videos/<slug>/studio` (bảng `VideoSubtitle`), mỗi clip vài phút:
+  1. Dán lời thoại chép từ trang Transcript của We Bare Bears Wiki (đúng chính tả, có người nói).
+  2. Dán bản chép lời của YouTube ("...thêm" dưới video → "Hiện bản chép lời", chọn hết rồi chép) hoặc nội dung file
+     .srt / .vtt → **Tự căn giờ**: so khớp từng từ để gán giờ cho mỗi câu (`alignToTranscript` trong
+     `lib/videos/subtitles.ts`), câu ngoài đoạn clip bị bỏ giờ. Không có bản chép lời thì phát video và nhấn Space mỗi khi
+     một câu bắt đầu.
+  3. **Dịch tự động** (cần `OPENAI_API_KEY`; đổi model bằng `OPENAI_TRANSLATE_MODEL`, mặc định `gpt-4.1-mini`), nghe thử,
+     chỉnh câu lệch rồi **Lưu phụ đề**.
 - Cấp quyền ADMIN cho 1 tài khoản (Neon → SQL Editor, hoặc `npm run db:studio` khi chạy máy):
   `UPDATE "User" SET role = 'ADMIN' WHERE email = '<email>';` Quyền mới có hiệu lực sau tối đa 1 phút (session tự nạp lại).
 

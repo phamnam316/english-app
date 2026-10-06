@@ -40,6 +40,28 @@ export async function getPracticeWords(userId: string, courses: CourseSummary[],
   ]);
   const reviewByWord = new Map(reviews.map((r) => [r.word, r]));
 
+  // Từ người học tự lưu ở nơi khác (vd bấm vào từ trong phụ đề trang Xem phim) dù chưa mở bài chứa từ đó
+  const lessonKeys = new Set(vocabularies.map((v) => wordKey(v.word)));
+  const savedElsewhere = reviews.filter((r) => r.dueAt && !lessonKeys.has(r.word)).map((r) => r.word);
+  if (savedElsewhere.length > 0) {
+    vocabularies.push(
+      ...(await prisma.vocabulary.findMany({
+        where: { word: { in: savedElsewhere, mode: "insensitive" }, lesson: { unit: { course: { isPublished: true } } } },
+        select: {
+          id: true,
+          word: true,
+          phonetic: true,
+          meaning: true,
+          exampleSentence: true,
+          exampleTranslation: true,
+          cefr: true,
+          audioUrl: true,
+          lessonId: true,
+        },
+      })),
+    );
+  }
+
   // Cùng 1 từ có thể nằm ở nhiều bài/khóa: chỉ giữ 1 lần
   const byKey = new Map<string, PracticeWord>();
   for (const { lessonId, ...vocab } of vocabularies) {

@@ -6,7 +6,9 @@ import { requireSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, parseJsonBody } from "@/lib/api-error";
 import { findCatalogClip } from "@/lib/videos/catalog";
 import { getVideoDetail, toSubtitleLines } from "@/lib/videos/data";
+import { toCues } from "@/lib/videos/subtitles";
 import { saveSubtitlesSchema } from "@/lib/videos/validations";
+import { getClipVocabulary } from "@/lib/videos/vocabulary";
 import type { SaveSubtitlesResponse, VideoDetailResponse } from "@/types/video";
 
 interface RouteContext {
@@ -22,13 +24,15 @@ async function requireClip(context: RouteContext) {
 
 /**
  * GET /api/videos/:slug
- * Thông tin clip và toàn bộ câu thoại (người xem chỉ thấy câu đã căn thời gian; trang căn phụ đề cần cả câu chưa căn).
+ * Thông tin clip, toàn bộ câu thoại (người xem chỉ thấy câu đã căn thời gian; trang căn phụ đề cần cả câu chưa căn)
+ * và danh sách từ vựng trong phần đã căn.
  */
 export async function GET(_request: Request, context: RouteContext) {
   try {
     const user = await requireSessionUser();
-    const clip = await requireClip(context);
-    return NextResponse.json<VideoDetailResponse>({ clip: await getVideoDetail(clip), canEdit: user.role === "ADMIN" });
+    const detail = await getVideoDetail(await requireClip(context));
+    const vocabulary = await getClipVocabulary(user.id, toCues(detail.lines, detail.endSec));
+    return NextResponse.json<VideoDetailResponse>({ clip: detail, vocabulary, canEdit: user.role === "ADMIN" });
   } catch (error) {
     return handleApiError(error, "GET /api/videos/:slug");
   }

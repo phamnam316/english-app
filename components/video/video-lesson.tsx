@@ -2,14 +2,18 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { ArrowLeft, ExternalLink, Pause, Play, RotateCcw, SkipBack, SkipForward, SlidersHorizontal } from "lucide-react";
 
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
+import { ClipVocabulary } from "@/components/video/clip-vocabulary";
 import { ToggleChip } from "@/components/video/toggle-chip";
 import { VideoFrame } from "@/components/video/video-frame";
-import { WordPopover } from "@/components/video/word-popover";
+import { WordPopover, type WordRatingsProps } from "@/components/video/word-popover";
+import { invalidateApiCache } from "@/hooks/use-api-query";
 import { useYouTubePlayer } from "@/hooks/use-youtube-player";
+import { api, toApiClientError } from "@/lib/api-client";
 import { isInsideDialog, isInteractiveTarget, isTypingTarget } from "@/lib/dom";
 import { youtubeWatchUrl } from "@/lib/videos/catalog";
 import {
@@ -21,24 +25,29 @@ import {
   type SubtitleCue,
 } from "@/lib/videos/subtitles";
 import { cn } from "@/lib/utils";
-import type { VideoClipDetail } from "@/types/video";
+import { wordKey } from "@/lib/word-rating";
+import type { WordRating } from "@/types/api";
+import type { ClipWord, VideoClipDetail } from "@/types/video";
 
 /** Bấm nút tốc độ để xoay vòng các mức này */
 const SPEEDS = [1, 0.75, 0.5];
 
 /** Sau khi dừng ở cuối câu, thời điểm còn trong chừng này giây sau câu thì vẫn coi là đang ở câu đó */
 const FOCUS_GRACE_SECONDS = 1;
+/** Đóng bảng nghĩa rồi chừng này ms mới phát tiếp: rê sang từ bên cạnh thì video vẫn dừng */
+const RESUME_DELAY_MS = 350;
 
 interface VideoLessonProps {
   clip: VideoClipDetail;
+  vocabulary: ClipWord[];
   canEdit: boolean;
 }
 
 /**
- * Xem 1 clip với phụ đề song ngữ: câu đang nói hiện to dưới video (bấm từ để tra nghĩa),
- * nút câu trước / phát lại / câu sau, lặp câu, tự dừng sau mỗi câu, tốc độ chậm và danh sách lời thoại.
+ * Xem 1 clip với phụ đề song ngữ: câu đang nói hiện to dưới video (rê chuột / chạm vào từ để tra nghĩa và lưu từ),
+ * nút câu trước / phát lại / câu sau, lặp câu, tự dừng sau mỗi câu, tốc độ chậm, lời thoại và từ vựng của clip.
  */
-export function VideoLesson({ clip, canEdit }: VideoLessonProps) {
+export function VideoLesson({ clip, vocabulary, canEdit }: VideoLessonProps) {
   const cues = useMemo(() => toCues(clip.lines, clip.endSec), [clip.lines, clip.endSec]);
   const [showEn, setShowEn] = useState(true);
   const [showVi, setShowVi] = useState(true);
@@ -51,6 +60,15 @@ export function VideoLesson({ clip, canEdit }: VideoLessonProps) {
   const [revealed, setRevealed] = useState(-1);
   /** Câu đang phát: để lặp lại hoặc dừng đúng lúc câu kết thúc */
   const playingCueRef = useRef(-1);
+  const [panel, setPanel] = useState<"transcript" | "vocabulary">("transcript");
+  /** Mức nhớ các từ theo wordKey (từ danh sách từ vựng của clip và các từ đã tra) */
+  const [ratings, setRatings] = useState<Record<string, WordRating | null>>(() =>
+    Object.fromEntries(vocabulary.map((item) => [wordKey(item.word), item.rating])),
+  );
+  /** Video đang phát thì bị dừng khi mở bảng nghĩa: đóng bảng thì phát tiếp */
+  const resumeAfterWordRef = useRef(false);
+  const resumeTimerRef = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(resumeTimerRef.current), []);
 
   const player = useYouTubePlayer({
     videoId: clip.youtubeId,
@@ -97,6 +115,47 @@ export function VideoLesson({ clip, canEdit }: VideoLessonProps) {
     player.seek(cue.start);
     player.play();
   }
+
+  function playFrom(start: number) {
+    const index = cues.findIndex((cue) => cue.start === start);
+    if (index !== -1) goToCue(index);
+  }
+
+  function handleWordOpenChange(open: boolean) {
+    window.clearTimeout(resumeTimerRef.current);
+    if (open) {
+      if (player.isPlaying) {
+        resumeAfterWordRef.current = true;
+        player.pause();
+      }
+    } else if (resumeAfterWordRef.current) {
+      resumeTimerRef.current = window.setTimeout(() => {
+        resumeAfterWordRef.current = false;
+        player.play();
+      }, RESUME_DELAY_MS);
+    }
+  }
+
+  async function rateWord(word: string, rating: WordRating | null) {
+    const key = wordKey(word);
+    const previous = ratings[key] ?? null;
+    setRatings((current) => ({ ...current, [key]: rating }));
+    try {
+      await api.rateWord({ word, rating });
+      invalidateApiCache("home", "practice", "video:");
+      if (rating !== null && previous === null) toast.success(`Đã lưu “${word}”: từ sẽ có trong phần ôn tập.`);
+    } catch (error) {
+      setRatings((current) => ({ ...current, [key]: previous }));
+      toast.error(toApiClientError(error).message);
+    }
+  }
+
+  const wordRatings: WordRatingsProps = {
+    ratings,
+    onRate: (word, rating) => void rateWord(word, rating),
+    onRatingLoaded: (word, rating) =>
+      setRatings((current) => (wordKey(word) in current ? current : { ...current, [wordKey(word)]: rating })),
+  };
 
   const goPrevious = () => goToCue(Math.max(0, focus - 1));
   const replay = () => goToCue(Math.max(0, focus));
@@ -180,7 +239,8 @@ export function VideoLesson({ clip, canEdit }: VideoLessonProps) {
               showEn={showEn || revealed === focus}
               showVi={showVi}
               onReveal={() => setRevealed(focus)}
-              onWordOpen={player.pause}
+              onWordOpenChange={handleWordOpenChange}
+              wordRatings={wordRatings}
             />
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -234,8 +294,9 @@ export function VideoLesson({ clip, canEdit }: VideoLessonProps) {
               </ToggleChip>
             </div>
             <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-              Mẹo luyện nghe: tắt Tiếng Anh, bật Tự dừng sau mỗi câu, đoán câu vừa nghe rồi bấm để xem lại. Phím tắt: ← →
-              chuyển câu, R phát lại, K phát / dừng.
+              Rê chuột (điện thoại: chạm) vào 1 từ trong phụ đề để xem nghĩa và lưu từ để ôn; video tạm dừng trong lúc xem.
+              Luyện nghe: tắt Tiếng Anh, bật Tự dừng sau mỗi câu, đoán câu vừa nghe rồi bấm để xem lại. Phím tắt: ← → chuyển
+              câu, R phát lại, K phát / dừng.
             </p>
           </>
         ) : (
@@ -258,13 +319,42 @@ export function VideoLesson({ clip, canEdit }: VideoLessonProps) {
       </div>
 
       {hasCues && (
-        <Transcript
-          cues={cues}
-          focus={focus}
-          showEn={showEn}
-          showVi={showVi}
-          onSelect={goToCue}
-        />
+        <aside aria-label="Lời thoại và từ vựng" className="min-w-0 lg:sticky lg:top-6 lg:self-start">
+          <div role="tablist" aria-label="Nội dung bên cạnh video" className="flex gap-6 border-b border-line">
+            {(
+              [
+                { value: "transcript", label: `Lời thoại (${cues.length})` },
+                { value: "vocabulary", label: `Từ vựng (${vocabulary.length})` },
+              ] as const
+            ).map((tab) => (
+              <button
+                key={tab.value}
+                type="button"
+                role="tab"
+                aria-selected={panel === tab.value}
+                onClick={() => setPanel(tab.value)}
+                className={cn(
+                  "relative -mb-px pb-2.5 text-[15px] outline-none focus-visible:underline",
+                  panel === tab.value
+                    ? "font-semibold text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-clay"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          {panel === "transcript" ? (
+            <Transcript cues={cues} focus={focus} showEn={showEn} showVi={showVi} onSelect={goToCue} />
+          ) : (
+            <ClipVocabulary
+              words={vocabulary}
+              ratings={ratings}
+              onRate={(word, rating) => void rateWord(word, rating)}
+              onPlaySentence={playFrom}
+            />
+          )}
+        </aside>
       )}
     </div>
   );
@@ -276,11 +366,12 @@ interface CurrentCueProps {
   showEn: boolean;
   showVi: boolean;
   onReveal: () => void;
-  onWordOpen: () => void;
+  onWordOpenChange: (open: boolean) => void;
+  wordRatings: WordRatingsProps;
 }
 
-/** Câu đang nói, chữ to; mỗi từ tiếng Anh bấm được để tra nghĩa */
-function CurrentCue({ cue, isSpeaking, showEn, showVi, onReveal, onWordOpen }: CurrentCueProps) {
+/** Câu đang nói, chữ to; rê chuột / chạm vào từng từ tiếng Anh để tra nghĩa */
+function CurrentCue({ cue, isSpeaking, showEn, showVi, onReveal, onWordOpenChange, wordRatings }: CurrentCueProps) {
   return (
     <section
       aria-label="Phụ đề"
@@ -298,7 +389,7 @@ function CurrentCue({ cue, isSpeaking, showEn, showVi, onReveal, onWordOpen }: C
             <p className="mt-1 font-serif text-[1.5rem] leading-snug sm:text-[1.75rem]">
               {tokenizeWords(cue.en).map((token, i) =>
                 token.word ? (
-                  <WordPopover key={i} word={token.word} onOpen={onWordOpen}>
+                  <WordPopover key={i} word={token.word} onOpenChange={onWordOpenChange} {...wordRatings}>
                     {token.text}
                   </WordPopover>
                 ) : (
@@ -343,16 +434,10 @@ function Transcript({ cues, focus, showEn, showVi, onSelect }: TranscriptProps) 
   }, [focus]);
 
   return (
-    <aside aria-labelledby="transcript-heading" className="min-w-0 lg:sticky lg:top-6 lg:self-start">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 id="transcript-heading" className="font-sans text-[15px] font-semibold tracking-normal">
-          Lời thoại
-        </h2>
-        <span className="text-[13px] text-muted-foreground tabular-nums">{cues.length} câu</span>
-      </div>
+    <div role="tabpanel" aria-label="Lời thoại">
       <ol
         ref={listRef}
-        className="relative mt-3 max-h-[28rem] overflow-y-auto border-t-2 border-foreground lg:max-h-[calc(100dvh-9rem)]"
+        className="relative mt-3 max-h-[28rem] overflow-y-auto border-t-2 border-foreground lg:max-h-[calc(100dvh-10rem)]"
       >
         {cues.map((cue, index) => (
           <li key={`${cue.lineIndex}-${cue.start}`} data-cue={index} className="border-b border-line">
@@ -384,6 +469,6 @@ function Transcript({ cues, focus, showEn, showVi, onSelect }: TranscriptProps) 
       <p className="mt-3 text-[12px] leading-relaxed text-muted-foreground">
         Lời thoại tham khảo từ We Bare Bears Wiki; bản dịch tiếng Việt dành cho việc học.
       </p>
-    </aside>
+    </div>
   );
 }
