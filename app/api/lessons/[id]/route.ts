@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError } from "@/lib/api-error";
+import { getNextLessonInCourse } from "@/lib/courses";
 import { toGrammarNote, wordKey } from "@/lib/word-rating";
 import { getWordRatings } from "@/lib/words";
 import type { LessonDetailResponse } from "@/types/api";
@@ -79,19 +80,13 @@ export async function GET(_request: Request, { params }: RouteContext) {
     const { course, ...unit } = lesson.unit;
     const progress = lesson.progress[0];
 
-    const [ratings, courseLessons] = await Promise.all([
+    const [ratings, nextLesson] = await Promise.all([
       getWordRatings(
         user.id,
         lesson.vocabularies.map((v) => v.word),
       ),
-      prisma.lesson.findMany({
-        where: { unit: { courseId: course.id } },
-        orderBy: [{ unit: { order: "asc" } }, { order: "asc" }],
-        select: { id: true, title: true },
-      }),
+      getNextLessonInCourse(course.id, lesson.id),
     ]);
-    const position = courseLessons.findIndex((l) => l.id === lesson.id);
-    const nextLesson = position >= 0 ? (courseLessons[position + 1] ?? null) : null;
 
     return NextResponse.json<LessonDetailResponse>({
       lesson: {

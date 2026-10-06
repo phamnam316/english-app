@@ -22,7 +22,9 @@ const PERIODS: Array<{ value: LeaderboardPeriod; label: string; note: string }> 
 
 export default function LeaderboardPage() {
   const [period, setPeriod] = useState<LeaderboardPeriod>("week");
-  const { data, error, isLoading, refetch } = useApiQuery((signal) => api.getLeaderboard(period, signal), [period]);
+  const { data, error, isLoading, refetch } = useApiQuery((signal) => api.getLeaderboard(period, signal), [period], {
+    cacheKey: `leaderboard:${period}`,
+  });
 
   const entries = data?.entries ?? [];
   const podium = entries.slice(0, 3);

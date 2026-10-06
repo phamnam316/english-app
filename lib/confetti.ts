@@ -10,7 +10,8 @@ export async function fireConfetti(): Promise<void> {
   // Nạp thư viện khi cần, không làm nặng bundle ban đầu của trang học
   const { default: confetti } = await import("canvas-confetti");
   confettiInstance = confetti;
-  const colors = ["#4c35c9", "#9a8bff", "#e3a008", "#ea5f12", "#137a41"];
+  // Màu của giao diện: xanh rêu, đất nung, vàng cát
+  const colors = ["#52664b", "#9db592", "#b96243", "#e3b26b", "#3e6a45"];
 
   confetti({ particleCount: 120, spread: 80, startVelocity: 45, origin: { y: 0.55 }, colors, zIndex: 60 });
   window.setTimeout(() => {

@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import type { PracticeDataResponse, PracticeWord } from "@/types/api";
 
 export default function PracticePage() {
-  const { data, error, isLoading, refetch } = useApiQuery((signal) => api.getPractice(signal), []);
+  const { data, error, isLoading, refetch } = useApiQuery((signal) => api.getPractice(signal), [], { cacheKey: "practice" });
   const { isSupported: canRecognizeSpeech } = useSpeechRecognition();
 
   let content: React.ReactNode;

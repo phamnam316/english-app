@@ -30,7 +30,7 @@ const GAMES: Record<PracticeMode, ComponentType<PracticeGameProps>> = {
 export default function PracticeGamePage() {
   const { mode: slug } = useParams<{ mode: string }>();
   const meta = getPracticeMode(slug);
-  const { data, error, isLoading, refetch } = useApiQuery((signal) => api.getPractice(signal), []);
+  const { data, error, isLoading, refetch } = useApiQuery((signal) => api.getPractice(signal), [], { cacheKey: "practice" });
   const [round, setRound] = useState(0);
   // Kỷ lục mới nhất sau mỗi lượt, theo từng trò (dữ liệu tải lúc đầu không tự cập nhật)
   const [latestBest, setLatestBest] = useState<Partial<Record<PracticeMode, number>>>({});

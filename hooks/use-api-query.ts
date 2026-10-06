@@ -16,6 +16,24 @@ export interface ApiQueryResult<T> {
 interface ApiQueryOptions {
   /** Hiện toast khi lỗi (mặc định bật) */
   toastOnError?: boolean;
+  /**
+   * Khóa lưu tạm kết quả trong bộ nhớ của tab. Có khóa: quay lại trang đã xem sẽ hiện ngay dữ liệu cũ
+   * (không hiện khung chờ), đồng thời vẫn tải lại ngầm để cập nhật.
+   */
+  cacheKey?: string;
+}
+
+/** Kết quả đã tải theo cacheKey; mất khi tải lại trang (đăng xuất / đăng nhập luôn tải lại trang) */
+const queryCache = new Map<string, unknown>();
+
+/**
+ * Xóa dữ liệu lưu tạm sau khi có thay đổi (nộp bài, chơi xong, đánh giá từ) để lần mở sau không thấy số cũ.
+ * Truyền tiền tố khóa, vd invalidateApiCache("courses", "practice").
+ */
+export function invalidateApiCache(...prefixes: string[]): void {
+  for (const key of [...queryCache.keys()]) {
+    if (prefixes.length === 0 || prefixes.some((prefix) => key.startsWith(prefix))) queryCache.delete(key);
+  }
 }
 
 /**
@@ -26,11 +44,11 @@ interface ApiQueryOptions {
 export function useApiQuery<T>(
   fetcher: (signal: AbortSignal) => Promise<T>,
   deps: DependencyList,
-  { toastOnError = true }: ApiQueryOptions = {},
+  { toastOnError = true, cacheKey }: ApiQueryOptions = {},
 ): ApiQueryResult<T> {
-  const [data, setData] = useState<T>();
+  const [data, setData] = useState<T | undefined>(() => (cacheKey ? (queryCache.get(cacheKey) as T | undefined) : undefined));
   const [error, setError] = useState<ApiClientError>();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => !(cacheKey && queryCache.has(cacheKey)));
   const [reloadToken, setReloadToken] = useState(0);
 
   // Luôn dùng fetcher mới nhất mà không phải đưa nó vào deps (tránh gọi API lặp vô hạn)
@@ -41,27 +59,36 @@ export function useApiQuery<T>(
 
   useEffect(() => {
     const controller = new AbortController();
-    setIsLoading(true);
+    const cached = cacheKey ? (queryCache.get(cacheKey) as T | undefined) : undefined;
+    if (cached !== undefined) {
+      // Có dữ liệu cũ: hiện ngay, tải lại ngầm
+      setData(cached);
+      setIsLoading(false);
+    } else {
+      setIsLoading(true);
+    }
     setError(undefined);
 
     fetcherRef
       .current(controller.signal)
       .then((result) => {
         if (controller.signal.aborted) return;
+        if (cacheKey) queryCache.set(cacheKey, result);
         setData(result);
         setIsLoading(false);
       })
       .catch((err: unknown) => {
         if (controller.signal.aborted || isAbortError(err)) return;
         const apiError = toApiClientError(err);
-        setError(apiError);
+        // Đang hiện dữ liệu cũ thì giữ nguyên, chỉ báo lỗi bằng toast
+        if (cached === undefined) setError(apiError);
         setIsLoading(false);
         if (toastOnError) toast.error(apiError.message);
       });
 
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...deps, reloadToken]);
+  }, [...deps, reloadToken, cacheKey]);
 
   const refetch = useCallback(() => setReloadToken((token) => token + 1), []);
 

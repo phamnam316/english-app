@@ -49,6 +49,7 @@ export function CourseRow({ course }: { course: CourseSummary }) {
   return (
     <Link
       href={`/courses/${course.id}`}
+      prefetch={false}
       className={cn(
         layout,
         "-mx-3 rounded-md px-3 outline-none transition-colors hover:bg-card focus-visible:bg-card focus-visible:outline-2 focus-visible:outline-ring",

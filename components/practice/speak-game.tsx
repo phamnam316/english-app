@@ -14,7 +14,8 @@ import {
   SpeechRecognitionError,
   useSpeechRecognition,
 } from "@/hooks/use-speech-recognition";
-import { isSpokenMatch, weightedShuffle } from "@/lib/practice";
+import { weightedShuffle } from "@/lib/practice";
+import { isSpeakableWord, isSpokenMatch } from "@/lib/speech-match";
 import { playCorrectSound, playWrongSound } from "@/lib/sounds";
 import { cn } from "@/lib/utils";
 import type { PracticeWord } from "@/types/api";
@@ -27,9 +28,9 @@ type WordStatus = "idle" | "correct" | "retry" | "failed";
 /** Luyện phát âm: đọc từ vào micro, so với kết quả nhận dạng giọng nói; mỗi từ 3 lần thử */
 export function SpeakGame({ meta, words, bestScore, skipIntro, onReplay, onSubmitted }: PracticeGameProps) {
   const { speak, stop: stopSpeaking } = useSpeech();
-  const { isSupported, isListening, listen, stop: stopListening } = useSpeechRecognition();
-  // Từ/cụm ngắn dễ nhận dạng chính xác hơn
-  const [items] = useState(() => weightedShuffle(words.filter((w) => w.word.length <= 24)).slice(0, ROUND_SIZE));
+  const { isSupported, isListening, listen, stop: stopListening, abort: abortListening } = useSpeechRecognition();
+  // Từ/cụm ngắn dễ nhận dạng chính xác hơn; bỏ dạng rút gọn không đọc riêng được ('m, 're)
+  const [items] = useState(() => weightedShuffle(words.filter((w) => isSpeakableWord(w.word))).slice(0, ROUND_SIZE));
   const [phase, setPhase] = useState<GamePhase>(skipIntro && isSupported && items.length > 0 ? "playing" : "intro");
   const [index, setIndex] = useState(0);
   const [attempts, setAttempts] = useState(0);
@@ -38,6 +39,8 @@ export function SpeakGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
   const [message, setMessage] = useState<string | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
   const missedRef = useRef<PracticeWord[]>([]);
+  // Mỗi lượt nghe 1 mã: kết quả về muộn của lượt cũ (đã bỏ qua từ, đã hủy) không được tính cho từ hiện tại
+  const listenIdRef = useRef(0);
 
   const item = items[index];
   const isDone = status === "correct" || status === "failed";
@@ -50,8 +53,10 @@ export function SpeakGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
     if (isDone) return;
     stopSpeaking();
     setMessage(null);
+    const listenId = ++listenIdRef.current;
     try {
       const transcripts = await listen();
+      if (listenId !== listenIdRef.current) return;
       if (transcripts.length === 0) {
         // Không nghe thấy gì: không tính là 1 lần thử
         setMessage(RECOGNITION_ERROR_MESSAGES["no-speech"]);
@@ -74,14 +79,21 @@ export function SpeakGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
         setStatus("retry");
       }
     } catch (error) {
+      if (listenId !== listenIdRef.current) return;
       if (error instanceof SpeechRecognitionError && error.code !== "aborted") {
         setMessage(RECOGNITION_ERROR_MESSAGES[error.code]);
       }
     }
   };
 
+  /** Bỏ lượt nghe đang dở (nếu có) */
+  const cancelListening = () => {
+    listenIdRef.current++;
+    abortListening();
+  };
+
   const next = (skipped = false) => {
-    stopListening();
+    cancelListening();
     if (skipped && !isDone) missedRef.current.push(item);
     if (index + 1 >= items.length) {
       setPhase("done");
@@ -138,7 +150,11 @@ export function SpeakGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
               <Button
                 variant="outline"
                 className="mt-5 rounded-full px-4"
-                onClick={() => void speak(item.word, { audioUrl: item.audioUrl })}
+                onClick={() => {
+                  // Đang nghe mà phát giọng mẫu thì micro sẽ thu luôn giọng mẫu
+                  if (isListening) cancelListening();
+                  void speak(item.word, { audioUrl: item.audioUrl });
+                }}
               >
                 <Volume2 className="size-[18px]" />
                 Nghe mẫu

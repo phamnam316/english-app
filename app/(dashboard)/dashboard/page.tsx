@@ -31,8 +31,8 @@ function reviewLockNote(next: NextLessonInfo | null) {
 
 export default function DashboardPage() {
   const { data: session } = useSession();
-  const courses = useApiQuery((signal) => api.getCourses(signal), []);
-  const practice = useApiQuery((signal) => api.getPractice(signal), [], { toastOnError: false });
+  const courses = useApiQuery((signal) => api.getCourses(signal), [], { cacheKey: "courses" });
+  const practice = useApiQuery((signal) => api.getPractice(signal), [], { toastOnError: false, cacheKey: "practice" });
 
   const list = courses.data?.courses ?? [];
   const course = pickContinueCourse(list);
@@ -42,7 +42,7 @@ export default function DashboardPage() {
   const preview = useApiQuery(
     (signal) => (nextId ? api.getLesson(nextId, signal) : Promise.resolve(null)),
     [nextId],
-    { toastOnError: false },
+    { toastOnError: false, cacheKey: nextId ? `lesson:${nextId}` : undefined },
   );
 
   const withLessons = list.filter((c) => getCourseStatus(c) !== "empty");

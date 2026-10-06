@@ -21,7 +21,7 @@ import type { CourseSummary } from "@/types/api";
 export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>();
   // Dùng lại GET /api/courses (đã có sẵn tiến độ của user) rồi lọc theo id
-  const { data, error, isLoading, refetch } = useApiQuery((signal) => api.getCourses(signal), []);
+  const { data, error, isLoading, refetch } = useApiQuery((signal) => api.getCourses(signal), [], { cacheKey: "courses" });
   const course = data?.courses.find((c) => c.id === id);
 
   let content: React.ReactNode;
@@ -63,7 +63,7 @@ function CourseDetail({ course, otherCourses }: { course: CourseSummary; otherCo
   const preview = useApiQuery(
     (signal) => (next ? api.getLesson(next.lesson.id, signal) : Promise.resolve(null)),
     [next?.lesson.id],
-    { toastOnError: false },
+    { toastOnError: false, cacheKey: next ? `lesson:${next.lesson.id}` : undefined },
   );
 
   // Số thứ tự bài đầu tiên của từng chương (đánh số liên tục trong cả khóa)
@@ -191,6 +191,7 @@ function CourseDetail({ course, otherCourses }: { course: CourseSummary; otherCo
                   <li key={other.id} className="border-b border-line">
                     <Link
                       href={`/courses/${other.id}`}
+                      prefetch={false}
                       className="block py-3.5 outline-none hover:text-moss-strong focus-visible:underline"
                     >
                       <span className={cn("block text-[15px] font-semibold", empty && "text-muted-foreground")}>

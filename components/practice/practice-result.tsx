@@ -9,6 +9,7 @@ import type { PracticeMode } from "@prisma/client";
 import { LessonFooter } from "@/components/lesson/lesson-footer";
 import { Button } from "@/components/ui/button";
 import { useSpeech } from "@/hooks/use-speech";
+import { invalidateApiCache } from "@/hooks/use-api-query";
 import { api, toApiClientError } from "@/lib/api-client";
 import { fireConfetti, stopConfetti } from "@/lib/confetti";
 import { cn } from "@/lib/utils";
@@ -65,6 +66,7 @@ export function PracticeResult({
     try {
       const result = await api.submitPractice({ mode, correct, total: Math.max(total, 1), score });
       setState({ status: "saved", result });
+      invalidateApiCache("practice", "leaderboard");
       onSubmittedRef.current?.(result);
       // Header hiện XP/streak mới ngay (xem giải thích trong completion-screen)
       void refreshSession({});

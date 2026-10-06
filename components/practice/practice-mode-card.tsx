@@ -86,6 +86,7 @@ export function PracticeModeRow({ meta, bestScore, note, disabled = false }: Pra
   return (
     <Link
       href={`/practice/${meta.slug}`}
+      prefetch={false}
       className={cn(className, "-mx-2 rounded-md px-3 transition-colors hover:bg-card focus-visible:bg-card focus-visible:outline-2 focus-visible:outline-ring")}
     >
       {content}

@@ -114,7 +114,11 @@ function LessonRow({ lesson, number }: { lesson: LessonWithState; number: number
   }
 
   return (
-    <Link href={`/lessons/${lesson.id}`} className={cn(rowClass, "transition-colors hover:bg-paper focus-visible:bg-paper")}>
+    <Link
+      href={`/lessons/${lesson.id}`}
+      prefetch={false}
+      className={cn(rowClass, "transition-colors hover:bg-paper focus-visible:bg-paper")}
+    >
       {content}
     </Link>
   );
@@ -143,7 +147,7 @@ function CurrentLesson({ lesson, number, words }: { lesson: LessonWithState; num
         </p>
         {lesson.vocabCount > 0 &&
           (words ? (
-            <p className="mt-3 font-serif text-[17px] text-muted-foreground italic">
+            <p className="mt-3 font-serif text-[17px] text-muted-foreground">
               {words.map((w) => w.word).join(", ")}
             </p>
           ) : (

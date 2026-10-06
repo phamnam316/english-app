@@ -52,7 +52,8 @@ export const RECOGNITION_ERROR_MESSAGES: Record<RecognitionErrorCode, string> = 
   "not-allowed": "Bạn chưa cho phép dùng micro. Bấm biểu tượng ổ khóa cạnh thanh địa chỉ để bật micro.",
   "no-speech": "Mình chưa nghe thấy gì. Bấm micro rồi đọc to, rõ hơn nhé.",
   "audio-capture": "Không tìm thấy micro trên thiết bị của bạn.",
-  network: "Nhận dạng giọng nói cần kết nối mạng. Kiểm tra mạng rồi thử lại.",
+  network:
+    "Không kết nối được dịch vụ nhận dạng giọng nói. Kiểm tra mạng rồi thử lại; nếu vẫn lỗi, hãy dùng Chrome hoặc Edge (Cốc Cốc, Brave, Opera chưa hỗ trợ).",
   aborted: "",
   unknown: "Không nhận dạng được giọng nói. Thử lại nhé.",
 };
@@ -138,6 +139,8 @@ export function useSpeechRecognition(lang = "en-US") {
 
   /** Dừng nghe sớm: phần đã nói vẫn được nhận dạng */
   const stop = useCallback(() => recognitionRef.current?.stop(), []);
+  /** Hủy lượt nghe, bỏ kết quả (listen() bị từ chối với mã "aborted") */
+  const abort = useCallback(() => recognitionRef.current?.abort(), []);
 
-  return { isSupported, isListening, listen, stop };
+  return { isSupported, isListening, listen, stop, abort };
 }

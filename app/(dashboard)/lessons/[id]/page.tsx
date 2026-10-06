@@ -22,7 +22,9 @@ import { useLessonStore } from "@/store/useLessonStore";
  */
 export default function LessonPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, error, isLoading, refetch } = useApiQuery((signal) => api.getLesson(id, signal), [id]);
+  const { data, error, isLoading, refetch } = useApiQuery((signal) => api.getLesson(id, signal), [id], {
+    cacheKey: `lesson:${id}`,
+  });
   const { phase, loadedLessonId, setLesson, resetLesson } = useLessonStore(
     useShallow((s) => ({
       phase: s.phase,
@@ -32,9 +34,10 @@ export default function LessonPage() {
     })),
   );
 
-  // Nạp bài vào store khi tải xong; rời trang -> xóa sạch để lần sau học lại từ đầu
+  // Nạp bài vào store khi tải xong; rời trang -> xóa sạch để lần sau học lại từ đầu.
+  // Bản tải lại ngầm của cùng 1 bài không nạp lại (không làm người học bị đưa về từ đầu tiên).
   useEffect(() => {
-    if (data) setLesson(data.lesson);
+    if (data && useLessonStore.getState().lesson?.id !== data.lesson.id) setLesson(data.lesson);
   }, [data, setLesson]);
   useEffect(() => resetLesson, [resetLesson]);
 

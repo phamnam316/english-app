@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 import { toast } from "sonner";
 
+import { invalidateApiCache } from "@/hooks/use-api-query";
 import { api, toApiClientError } from "@/lib/api-client";
 import type {
   CheckAnswerResponse,
@@ -169,6 +170,7 @@ export const useLessonStore = create<LessonStore>()((set, get) => ({
     set((state) => ({ ratings: { ...state.ratings, [vocabId]: rating } }));
     try {
       await api.rateWord({ word: vocab.word, rating });
+      invalidateApiCache("practice", "lesson:");
     } catch (error) {
       set((state) => ({ ratings: { ...state.ratings, [vocabId]: previous } }));
       toast.error(toApiClientError(error).message);
@@ -240,6 +242,8 @@ export const useLessonStore = create<LessonStore>()((set, get) => ({
           selectedOption: userAnswers[exercise.id] ?? "",
         })),
       });
+      // Tiến độ, XP đã đổi: các trang khác phải tải lại số mới
+      invalidateApiCache("courses", "practice", "leaderboard", "lesson:");
       if (get().lesson?.id !== lesson.id) return;
       set({ submitStatus: "success", submitResult: result });
     } catch (error) {

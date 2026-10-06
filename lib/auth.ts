@@ -26,8 +26,10 @@ const TOKEN_SYNC_INTERVAL_MS = 60_000;
  * Hash giả dùng khi email không tồn tại. Nhờ vẫn chạy bcrypt.compare, thời gian
  * phản hồi của "sai email" và "sai mật khẩu" như nhau -> kẻ tấn công không dò
  * được email nào đã đăng ký dựa vào tốc độ phản hồi.
+ * Là hằng số (bcrypt cost 12 của 1 chuỗi bất kỳ) thay vì tính lúc khởi động: hashSync mất ~0,25 giây
+ * và chạy lại ở mỗi lần serverless function khởi động lạnh.
  */
-const DUMMY_PASSWORD_HASH = bcrypt.hashSync("timing-attack-placeholder", BCRYPT_SALT_ROUNDS);
+const DUMMY_PASSWORD_HASH = "$2b$12$hr3lTnYdE/uDic25F.AbTu87hvT4ZUpGxrpt9H/iauzlsevfpt54m";
 
 const googleProvider =
   process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET

@@ -8,22 +8,23 @@ import { APP_NAME } from "@/lib/ui-constants";
 import "./globals.css";
 
 /*
- * Cả 3 font đều có đủ dấu tiếng Việt:
- * - Be Vietnam Pro: chữ giao diện.
- * - Newsreader (có trục optical size): tiêu đề, từ vựng, câu ví dụ.
- * - Noto Sans: phiên âm IPA (ký hiệu như ɪ ə ʊ θ ð ŋ ʃ ʒ ˈ ː nằm ở bảng latin-ext và greek).
+ * Cả 3 font đều có đủ dấu tiếng Việt. Chỉ nạp đúng những gì giao diện dùng để trang nhẹ (font là phần nặng nhất):
+ * - Be Vietnam Pro: chữ giao diện, 3 độ đậm 400/500/600 (không dùng 700).
+ * - Newsreader: tiêu đề, từ vựng, câu ví dụ. Bản variable chỉ có trục độ đậm, không nạp trục optical size
+ *   và bộ chữ nghiêng (2 thứ này làm file font nặng gấp ~3 lần).
+ * - Noto Sans: phiên âm IPA (ɪ ə ʊ θ ð ŋ ʃ ʒ ˈ ː nằm ở bảng latin-ext và greek). Không preload: trình duyệt
+ *   chỉ tải khi trang thật sự có phiên âm.
  */
 const ui = Be_Vietnam_Pro({
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600"],
   variable: "--font-ui",
   display: "swap",
 });
 
 const display = Newsreader({
   subsets: ["latin", "vietnamese"],
-  axes: ["opsz"],
-  style: ["normal", "italic"],
+  style: "normal",
   variable: "--font-display",
   display: "swap",
 });
@@ -33,6 +34,7 @@ const phonetic = Noto_Sans({
   weight: "400",
   variable: "--font-phonetic",
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
