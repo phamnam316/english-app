@@ -130,11 +130,43 @@ export interface LessonDetail {
   unit: { id: string; title: string; order: number };
   course: { id: string; title: string; level: Level };
   grammarNote: GrammarNote | null;
+  story: LessonStory | null;
   vocabularies: VocabularyItem[];
   exercises: ExerciseItem[];
   progress: LessonProgressInfo;
   /** Bài kế tiếp trong khóa (để nút "Học bài tiếp"); null nếu là bài cuối */
   nextLesson: { id: string; title: string } | null;
+}
+
+/** Đoạn hội thoại tình huống mở đầu bài học (đặt từ mới vào ngữ cảnh đời sống) */
+export interface LessonStory {
+  /** Tên tình huống, vd "Buổi sáng ở quán cà phê" */
+  title: string;
+  /** 1 câu dẫn: ai, ở đâu */
+  intro: string;
+  /** Nhân vật chính, hiển thị bên phải */
+  main: string;
+  lines: Array<{ speaker: string; en: string; vi: string }>;
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/home
+// ---------------------------------------------------------------------------
+
+export interface HomeResponse {
+  courses: CourseSummary[];
+  /** Mục tiêu mỗi ngày: học xong 1 bài + 1 lượt ôn */
+  today: { lessonsCompleted: number; practiceRounds: number };
+  review: {
+    /** Số từ có thể ôn (từ của các bài đã mở) */
+    wordCount: number;
+    /** Số từ đến hạn ôn hôm nay */
+    dueCount: number;
+    /** Số từ tự đánh giá Chưa nhớ / Hơi nhớ */
+    weakCount: number;
+  };
+  /** Từ của bài nên học tiếp, để xem trước */
+  nextLessonWords: Array<{ id: string; word: string; phonetic: string | null }>;
 }
 
 // ---------------------------------------------------------------------------
@@ -265,6 +297,8 @@ export interface PracticeWord {
   audioUrl: string | null;
   /** Mức nhớ tự đánh giá; trò chơi ưu tiên từ chưa nhớ */
   rating: WordRating | null;
+  /** Đến hạn ôn hôm nay (lịch lặp lại ngắt quãng) */
+  due: boolean;
 }
 
 export interface PracticeStats {
@@ -276,8 +310,10 @@ export interface PracticeStats {
 }
 
 export interface PracticeDataResponse {
-  /** Từ vựng của các bài đã mở khóa (đã học xong hoặc đang học) */
+  /** Từ vựng của các bài đã mở khóa (đã học xong hoặc đang học), từ đến hạn ôn đứng trước */
   words: PracticeWord[];
+  /** Số từ đến hạn ôn hôm nay */
+  dueCount: number;
   stats: PracticeStats;
 }
 
@@ -289,6 +325,8 @@ export interface PracticeResultRequest {
   total: number;
   /** Điểm để tính kỷ lục (trò tính giờ: số câu đúng trong 60 giây) */
   score: number;
+  /** Đúng/sai từng từ trong lượt, để cập nhật lịch ôn */
+  reviewed?: Array<{ word: string; correct: boolean }>;
 }
 
 export interface PracticeResultResponse {

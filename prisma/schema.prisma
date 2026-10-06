@@ -153,6 +153,8 @@ model Lesson {
   xpReward Int    @default(10)
   /// Ghi chú ngữ pháp của bài (xem GrammarNote trong types/api.ts); null = bài không có
   grammarNote Json?
+  /// Đoạn hội thoại tình huống mở đầu bài (xem LessonStory trong types/api.ts); null = bài không có
+  story       Json?
   unitId   String
 
   unit         Unit           @relation(fields: [unitId], references: [id], onDelete: Cascade)
@@ -231,7 +233,7 @@ model Activity {
   xpEarned  Int           @default(0)
   /// Chỉ có với PRACTICE
   mode      PracticeMode?
-  /// Điểm của lượt luyện tập (để tính kỷ lục)
+  /// PRACTICE: điểm của lượt (để tính kỷ lục). LESSON: điểm lần nộp bài (0-100)
   score     Int?
   /// Chỉ có với LESSON
   lessonId  String?
@@ -246,14 +248,22 @@ model Activity {
 /// Người học tự đánh giá mức nhớ 1 từ: 1 = Chưa nhớ, 2 = Hơi nhớ, 3 = Đã nhớ.
 /// Lưu theo chữ của từ (viết thường) chứ không theo id: 1 từ có thể nằm ở nhiều bài/khóa,
 /// và seed có thể tạo lại dòng Vocabulary khi cập nhật nội dung.
+/// Mức nhớ tự đánh giá và lịch ôn (lặp lại ngắt quãng) của 1 từ, theo từng user
 model WordReview {
-  id        String   @id @default(cuid())
-  userId    String
-  word      String
-  rating    Int
-  updatedAt DateTime @updatedAt
+  id           String    @id @default(cuid())
+  userId       String
+  /// Từ viết thường (xem wordKey trong lib/word-rating.ts)
+  word         String
+  /// 1 Chưa nhớ, 2 Hơi nhớ, 3 Đã nhớ; null = chưa tự đánh giá (từ chỉ có lịch ôn)
+  rating       Int?
+  /// Khoảng cách của lần ôn hiện tại (ngày): 1, 3, 7, 14, 30, 60
+  intervalDays Int       @default(0)
+  /// Đến hạn ôn từ thời điểm này (0:00 giờ Việt Nam); null = chưa lên lịch
+  dueAt        DateTime?
+  updatedAt    DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, word])
+  @@index([userId, dueAt])
 }

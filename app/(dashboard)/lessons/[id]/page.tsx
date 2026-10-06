@@ -11,13 +11,14 @@ import { LessonHeader } from "@/components/lesson/lesson-header";
 import { LessonOutline, LessonSteps } from "@/components/lesson/lesson-outline";
 import { LessonSkeleton } from "@/components/lesson/lesson-skeleton";
 import { QuizView } from "@/components/lesson/quiz-view";
+import { StoryView } from "@/components/lesson/story-view";
 import { VocabularyView } from "@/components/lesson/vocabulary-view";
 import { useApiQuery } from "@/hooks/use-api-query";
 import { api } from "@/lib/api-client";
 import { useLessonStore } from "@/store/useLessonStore";
 
 /**
- * Màn học 1 bài: Học từ -> Ghi chú ngữ pháp (nếu có) -> Làm bài -> Hoàn thành.
+ * Màn học 1 bài: Tình huống (nếu có) -> Học từ -> Mẹo ghép câu (nếu có) -> Làm bài -> Hoàn thành.
  * Toàn màn hình, không có thanh điều hướng để người học tập trung; máy tính có thêm cột dàn bài bên trái.
  */
 export default function LessonPage() {
@@ -72,6 +73,7 @@ export default function LessonPage() {
       <div className="mx-auto grid w-full max-w-[1180px] flex-1 lg:grid-cols-12 lg:gap-12 lg:px-8">
         <LessonOutline className="hidden lg:col-span-3 lg:block" />
         <main className="flex min-w-0 flex-col px-4 sm:px-8 lg:col-span-9 lg:px-0">
+          {phase === "story" && <StoryView />}
           {phase === "vocabulary" && <VocabularyView />}
           {phase === "grammar" && <GrammarView />}
           {phase === "quiz" && <QuizView />}

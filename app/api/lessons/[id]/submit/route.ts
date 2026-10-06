@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, parseJsonBody } from "@/lib/api-error";
+import { scheduleLearnedWords } from "@/lib/review-schedule";
 import { gradeAnswers } from "@/lib/scoring";
 import { getNextStreak } from "@/lib/streak";
 import { submitLessonSchema } from "@/lib/validations";
@@ -17,7 +18,7 @@ interface RouteContext {
  * Body: { answers: [{ quizId, selectedOption }] }
  *
  * Server chấm lại toàn bộ bài (không tin kết quả từ client), lưu tiến độ, cộng XP và cập nhật streak.
- * XP chỉ được cộng ở lần ĐẦU TIÊN đậu bài.
+ * XP chỉ được cộng ở lần ĐẦU TIÊN đậu bài. Đậu bài: các từ của bài được lên lịch ôn sau 1 ngày.
  *
  * 200 - SubmitLessonResponse
  * 400 - Body sai / quizId không thuộc bài học
@@ -42,6 +43,7 @@ export async function POST(request: Request, { params }: RouteContext) {
           orderBy: { order: "asc" },
           select: { id: true, type: true, correctAnswer: true, explanation: true },
         },
+        vocabularies: { select: { word: true } },
       },
     });
 
@@ -89,9 +91,17 @@ export async function POST(request: Request, { params }: RouteContext) {
         select: { streak: true, lastActiveAt: true },
       });
       const xpEarned = isFirstCompletion ? lesson.xpReward : 0;
-      // Ghi lại để tính bảng xếp hạng tuần
-      if (xpEarned > 0) {
-        await tx.activity.create({ data: { userId: user.id, type: "LESSON", xpEarned, lessonId } });
+      // Ghi mọi lần nộp bài (kèm điểm): tính bảng xếp hạng tuần và đo mức giữ chân người học (scripts/stats.ts)
+      await tx.activity.create({
+        data: { userId: user.id, type: "LESSON", xpEarned, lessonId, score: grade.score },
+      });
+      if (grade.passed) {
+        await scheduleLearnedWords(
+          tx,
+          user.id,
+          lesson.vocabularies.map((v) => v.word),
+          now,
+        );
       }
 
       const updated = await tx.user.update({

@@ -7,6 +7,7 @@ import { FeedbackBanner } from "@/components/lesson/feedback-banner";
 import { LessonFooter } from "@/components/lesson/lesson-footer";
 import { PracticeIntro, PracticeShell } from "@/components/practice/practice-shell";
 import { PracticeResult } from "@/components/practice/practice-result";
+import { useReviewLog } from "@/components/practice/review-log";
 import type { GamePhase, PracticeGameProps } from "@/components/practice/types";
 import { WordChips } from "@/components/word-chips";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,7 @@ export function SentenceGame({ meta, words, bestScore, skipIntro, onReplay, onSu
   const [result, setResult] = useState<boolean | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
   const missedRef = useRef<PracticeWord[]>([]);
+  const reviewLog = useReviewLog();
 
   const item = items[index];
 
@@ -74,6 +76,7 @@ export function SentenceGame({ meta, words, bestScore, skipIntro, onReplay, onSu
       item.tokens,
     );
     setResult(isCorrect);
+    reviewLog.record(item.word.word, isCorrect);
     if (isCorrect) {
       playCorrectSound();
       setCorrectCount((c) => c + 1);
@@ -178,6 +181,7 @@ export function SentenceGame({ meta, words, bestScore, skipIntro, onReplay, onSu
           total={items.length}
           score={correctCount}
           review={missedRef.current}
+          reviewed={reviewLog.entries()}
           onReplay={onReplay}
           onSubmitted={onSubmitted}
         />

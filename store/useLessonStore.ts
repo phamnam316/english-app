@@ -14,14 +14,14 @@ import type {
 } from "@/types/api";
 
 /**
- * Store cho 1 phiên học: từ vựng -> ghi chú ngữ pháp (nếu có) -> bài tập (quiz) -> hoàn thành.
+ * Store cho 1 phiên học: tình huống (nếu có) -> từ vựng -> mẹo ghép câu (nếu có) -> bài tập (quiz) -> hoàn thành.
  *
  * Lưu ý với Next.js: store này ở cấp module nên dùng chung trên server giữa các request.
  * Nó an toàn vì dữ liệu chỉ được ghi trong useEffect / sự kiện click (chỉ chạy ở trình duyệt),
  * server luôn render với state rỗng ban đầu.
  */
 
-export type LessonPhase = "vocabulary" | "grammar" | "quiz" | "completed";
+export type LessonPhase = "story" | "vocabulary" | "grammar" | "quiz" | "completed";
 export type SubmitStatus = "idle" | "submitting" | "success" | "error";
 
 interface LessonData {
@@ -56,6 +56,10 @@ interface LessonData {
 
 interface LessonActions {
   setLesson: (lesson: LessonDetail) => void;
+  /** Về đoạn hội thoại tình huống ở đầu bài */
+  goToStory: () => void;
+  /** Hết đoạn hội thoại: sang học từ (hoặc phần tiếp theo nếu bài không có từ mới) */
+  finishStory: () => void;
   goToVocab: (index: number) => void;
   /** Sang phần ghi chú ngữ pháp (bài không có ghi chú thì vào thẳng bài tập) */
   goToGrammar: () => void;
@@ -134,9 +138,27 @@ export const useLessonStore = create<LessonStore>()((set, get) => ({
       vocabularies: lesson.vocabularies,
       exercises: lesson.exercises,
       ratings: Object.fromEntries(lesson.vocabularies.map((v) => [v.id, v.rating])),
-      phase: hasVocab ? "vocabulary" : lesson.grammarNote ? "grammar" : hasQuiz ? "quiz" : "completed",
-      isCompleted: !hasVocab && !lesson.grammarNote && !hasQuiz,
+      phase: lesson.story
+        ? "story"
+        : hasVocab
+          ? "vocabulary"
+          : lesson.grammarNote
+            ? "grammar"
+            : hasQuiz
+              ? "quiz"
+              : "completed",
+      isCompleted: !lesson.story && !hasVocab && !lesson.grammarNote && !hasQuiz,
     });
+  },
+
+  goToStory: () => {
+    if (get().lesson?.story) set({ phase: "story" });
+  },
+
+  finishStory: () => {
+    const { vocabularies } = get();
+    if (vocabularies.length > 0) get().goToVocab(0);
+    else get().finishVocabulary();
   },
 
   goToVocab: (index) => {
@@ -170,7 +192,7 @@ export const useLessonStore = create<LessonStore>()((set, get) => ({
     set((state) => ({ ratings: { ...state.ratings, [vocabId]: rating } }));
     try {
       await api.rateWord({ word: vocab.word, rating });
-      invalidateApiCache("practice", "lesson:");
+      invalidateApiCache("home", "practice", "lesson:");
     } catch (error) {
       set((state) => ({ ratings: { ...state.ratings, [vocabId]: previous } }));
       toast.error(toApiClientError(error).message);
@@ -243,7 +265,7 @@ export const useLessonStore = create<LessonStore>()((set, get) => ({
         })),
       });
       // Tiến độ, XP đã đổi: các trang khác phải tải lại số mới
-      invalidateApiCache("courses", "practice", "leaderboard", "lesson:");
+      invalidateApiCache("home", "courses", "practice", "leaderboard", "lesson:");
       if (get().lesson?.id !== lesson.id) return;
       set({ submitStatus: "success", submitResult: result });
     } catch (error) {
@@ -260,17 +282,20 @@ export const useLessonStore = create<LessonStore>()((set, get) => ({
   resetLesson: () => set(initialState),
 }));
 
-/** Phần trăm tiến độ của cả bài: mỗi thẻ từ vựng đã xem, phần ngữ pháp, mỗi câu đã kiểm tra là 1 bước */
+/** Phần trăm tiến độ của cả bài: tình huống, mỗi thẻ từ vựng đã xem, mẹo ghép câu, mỗi câu đã kiểm tra là 1 bước */
 export function selectLessonProgress(state: LessonStore): number {
+  const storySteps = state.lesson?.story ? 1 : 0;
   const grammarSteps = state.lesson?.grammarNote ? 1 : 0;
-  const totalSteps = state.vocabularies.length + grammarSteps + state.exercises.length;
+  const totalSteps = storySteps + state.vocabularies.length + grammarSteps + state.exercises.length;
   if (totalSteps === 0) return 0;
 
-  const vocabDone = state.phase === "vocabulary" ? state.vocabIndex : state.vocabularies.length;
+  const storyDone = state.phase === "story" ? 0 : storySteps;
+  const vocabDone =
+    state.phase === "story" ? 0 : state.phase === "vocabulary" ? state.vocabIndex : state.vocabularies.length;
   const grammarDone = state.phase === "quiz" || state.phase === "completed" ? grammarSteps : 0;
   let quizDone = 0;
   if (state.phase === "completed") quizDone = state.exercises.length;
   else if (state.phase === "quiz") quizDone = state.currentIndex + (state.isSubmitted ? 1 : 0);
 
-  return Math.round(((vocabDone + grammarDone + quizDone) / totalSteps) * 100);
+  return Math.round(((storyDone + vocabDone + grammarDone + quizDone) / totalSteps) * 100);
 }

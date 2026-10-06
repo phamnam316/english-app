@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 
 import { PracticeIntro, PracticeShell } from "@/components/practice/practice-shell";
 import { PracticeResult } from "@/components/practice/practice-result";
+import { useReviewLog } from "@/components/practice/review-log";
 import type { GamePhase, PracticeGameProps } from "@/components/practice/types";
 import { useCountdown } from "@/hooks/use-countdown";
 import { useSpeech } from "@/hooks/use-speech";
@@ -67,6 +68,7 @@ export function MatchGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
   const [score, setScore] = useState(0);
   const [mistakes, setMistakes] = useState(0);
   const missedRef = useRef(new Map<string, PracticeWord>());
+  const reviewLog = useReviewLog();
 
   const remaining = useCountdown(TIMED_ROUND_SECONDS, phase === "playing", () => setPhase("done"));
 
@@ -76,7 +78,9 @@ export function MatchGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
     setSelected({ left: null, right: null });
     if (!left || !right) return;
 
+    const leftWord = words.find((w) => w.id === left.wordId);
     if (left.wordId === right.wordId) {
+      if (leftWord) reviewLog.record(leftWord.word, true);
       playCorrectSound();
       setScore((s) => s + 1);
       const next = new Set(matched).add(left.wordId);
@@ -92,7 +96,10 @@ export function MatchGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
       playWrongSound();
       setMistakes((m) => m + 1);
       const word = words.find((w) => w.id === left.wordId);
-      if (word) missedRef.current.set(word.id, word);
+      if (word) {
+        missedRef.current.set(word.id, word);
+        reviewLog.record(word.word, false);
+      }
       setWrongKeys([leftKey, rightKey]);
       window.setTimeout(() => setWrongKeys([]), 450);
     }
@@ -180,6 +187,7 @@ export function MatchGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
           total={Math.max(1, score + mistakes)}
           score={score}
           review={[...missedRef.current.values()]}
+          reviewed={reviewLog.entries()}
           onReplay={onReplay}
           onSubmitted={onSubmitted}
         />

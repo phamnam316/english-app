@@ -39,7 +39,7 @@ export function GrammarView() {
   return (
     <>
       <article className="w-full max-w-[720px] pt-6 pb-36 animate-in fade-in duration-300 sm:pt-10 lg:pt-12 motion-reduce:animate-none">
-        <p className="text-[14px] text-muted-foreground">Ghi chú ngữ pháp</p>
+        <p className="text-[14px] text-muted-foreground">Mẹo ghép câu</p>
         <h1 className="mt-2 text-[2.5rem] leading-[1.08] tracking-[-0.015em] text-balance sm:text-[3.25rem]">{note.title}</h1>
         <p className="mt-5 max-w-2xl text-[17px] leading-relaxed">
           <RichText text={note.intro} />

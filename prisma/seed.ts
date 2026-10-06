@@ -17,7 +17,7 @@ const prisma = new PrismaClient();
 
 const INTERMEDIATE_GRAMMAR: SeedCourse = {
   title: "Ngữ pháp trung cấp",
-  description: "Các thì hoàn thành, câu điều kiện và câu bị động qua ví dụ thực tế.",
+  description: "Kể chuyện đã xảy ra, nói “nếu… thì…” và câu bị động, qua ví dụ đời thường.",
   level: "INTERMEDIATE",
   isPublished: true,
   units: [
@@ -142,8 +142,9 @@ function exerciseRows(lesson: SeedLesson) {
   }));
 }
 
-function grammarValue(lesson: SeedLesson) {
-  return lesson.grammar ? (lesson.grammar as unknown as Prisma.InputJsonValue) : Prisma.DbNull;
+/** Cột Json: có nội dung thì lưu object, không có thì NULL */
+function jsonValue(value: object | undefined) {
+  return value ? (value as unknown as Prisma.InputJsonValue) : Prisma.DbNull;
 }
 
 function lessonCreateData(lesson: SeedLesson, order: number) {
@@ -151,7 +152,8 @@ function lessonCreateData(lesson: SeedLesson, order: number) {
     title: lesson.title,
     order,
     xpReward: lesson.xp ?? 10,
-    grammarNote: grammarValue(lesson),
+    grammarNote: jsonValue(lesson.grammar),
+    story: jsonValue(lesson.story),
     vocabularies: { createMany: { data: vocabRows(lesson) } },
     exercises: { createMany: { data: exerciseRows(lesson) } },
   };
@@ -231,6 +233,7 @@ async function syncCourse(courseId: string, course: SeedCourse, order: number): 
               order: true,
               xpReward: true,
               grammarNote: true,
+              story: true,
               vocabularies: {
                 orderBy: { order: "asc" },
                 select: {
@@ -300,13 +303,19 @@ async function syncCourse(courseId: string, course: SeedCourse, order: number): 
       const sameInfo =
         dbLesson.title === lesson.title &&
         dbLesson.xpReward === (lesson.xp ?? 10) &&
-        stableStringify(dbLesson.grammarNote) === stableStringify(lesson.grammar ?? null);
+        stableStringify(dbLesson.grammarNote) === stableStringify(lesson.grammar ?? null) &&
+        stableStringify(dbLesson.story) === stableStringify(lesson.story ?? null);
       if (sameContent && sameInfo) continue;
 
       await prisma.$transaction([
         prisma.lesson.update({
           where: { id: dbLesson.id },
-          data: { title: lesson.title, xpReward: lesson.xp ?? 10, grammarNote: grammarValue(lesson) },
+          data: {
+            title: lesson.title,
+            xpReward: lesson.xp ?? 10,
+            grammarNote: jsonValue(lesson.grammar),
+            story: jsonValue(lesson.story),
+          },
         }),
         ...(sameContent
           ? []

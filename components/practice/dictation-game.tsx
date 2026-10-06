@@ -7,6 +7,7 @@ import { FeedbackBanner } from "@/components/lesson/feedback-banner";
 import { LessonFooter } from "@/components/lesson/lesson-footer";
 import { PracticeIntro, PracticeShell } from "@/components/practice/practice-shell";
 import { PracticeResult } from "@/components/practice/practice-result";
+import { useReviewLog } from "@/components/practice/review-log";
 import type { GamePhase, PracticeGameProps } from "@/components/practice/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,7 @@ export function DictationGame({ meta, words, bestScore, skipIntro, onReplay, onS
   const [result, setResult] = useState<boolean | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
   const missedRef = useRef<PracticeWord[]>([]);
+  const reviewLog = useReviewLog();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const item = items[index];
@@ -55,6 +57,7 @@ export function DictationGame({ meta, words, bestScore, skipIntro, onReplay, onS
     if (result !== null || !input.trim()) return;
     const isCorrect = isAnswerCorrect(input, item.word);
     setResult(isCorrect);
+    reviewLog.record(item.word, isCorrect);
     if (isCorrect) {
       playCorrectSound();
       setCorrectCount((c) => c + 1);
@@ -179,6 +182,7 @@ export function DictationGame({ meta, words, bestScore, skipIntro, onReplay, onS
           total={items.length}
           score={correctCount}
           review={missedRef.current}
+          reviewed={reviewLog.entries()}
           onReplay={onReplay}
           onSubmitted={onSubmitted}
         />

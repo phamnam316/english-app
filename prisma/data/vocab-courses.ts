@@ -223,10 +223,10 @@ const countOf = (level: CefrLevel) => BANK.filter((w) => w.level === level).leng
 
 export const VOCAB_A1 = buildVocabCourse(
   "A1",
-  `${countOf("A1")} từ cấp độ A1 chia theo chủ đề, mỗi bài khoảng 10 từ có phiên âm, câu ví dụ kèm bản dịch và 9 câu luyện tập.`,
+  `${countOf("A1")} từ hay dùng nhất cho người mới bắt đầu: đồ ăn, gia đình, đi lại… Mỗi bài 10 từ, có người đọc mẫu và câu ví dụ có dịch.`,
 );
 
 export const VOCAB_A2 = buildVocabCourse(
   "A2",
-  `${countOf("A2")} từ cấp độ A2 chia theo chủ đề, học sau khi đã vững A1. Mỗi bài khoảng 10 từ kèm câu ví dụ có bản dịch.`,
+  `${countOf("A2")} từ tiếp theo, học sau khi xong A1: mua sắm, công việc, sức khỏe… Mỗi bài 10 từ, có người đọc mẫu và câu ví dụ có dịch.`,
 );

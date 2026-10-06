@@ -7,6 +7,7 @@ import type {
   CheckAnswerRequest,
   CheckAnswerResponse,
   CourseListResponse,
+  HomeResponse,
   LeaderboardPeriod,
   LeaderboardResponse,
   LessonDetailResponse,
@@ -98,6 +99,8 @@ const lessonPath = (lessonId: string) => `/api/lessons/${encodeURIComponent(less
 
 export const api = {
   getCourses: (signal?: AbortSignal) => request<CourseListResponse>("/api/courses", { signal }),
+
+  getHome: (signal?: AbortSignal) => request<HomeResponse>("/api/home", { signal }),
 
   getLesson: (lessonId: string, signal?: AbortSignal) =>
     request<LessonDetailResponse>(lessonPath(lessonId), { signal }),

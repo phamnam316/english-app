@@ -39,18 +39,20 @@ function useHideMeaningPreference() {
 
 /** Phần 1 của bài: học từng từ (nghĩa, ví dụ, phát âm) và tự đánh giá mức nhớ */
 export function VocabularyView() {
-  const { lesson, vocabularies, vocabIndex, ratings, exerciseCount, goToVocab, finishVocabulary, rateWord } = useLessonStore(
-    useShallow((s) => ({
-      lesson: s.lesson,
-      vocabularies: s.vocabularies,
-      vocabIndex: s.vocabIndex,
-      ratings: s.ratings,
-      exerciseCount: s.exercises.length,
-      goToVocab: s.goToVocab,
-      finishVocabulary: s.finishVocabulary,
-      rateWord: s.rateWord,
-    })),
-  );
+  const { lesson, vocabularies, vocabIndex, ratings, exerciseCount, goToStory, goToVocab, finishVocabulary, rateWord } =
+    useLessonStore(
+      useShallow((s) => ({
+        lesson: s.lesson,
+        vocabularies: s.vocabularies,
+        vocabIndex: s.vocabIndex,
+        ratings: s.ratings,
+        exerciseCount: s.exercises.length,
+        goToStory: s.goToStory,
+        goToVocab: s.goToVocab,
+        finishVocabulary: s.finishVocabulary,
+        rateWord: s.rateWord,
+      })),
+    );
   const [hideMeaning, setHideMeaning] = useHideMeaningPreference();
   const [revealedId, setRevealedId] = useState<string | null>(null);
 
@@ -63,9 +65,10 @@ export function VocabularyView() {
   const go = useCallback(
     (step: 1 | -1) => {
       if (step === 1 && isLast) finishVocabulary();
-      else if (!(step === -1 && isFirst)) goToVocab(vocabIndex + step);
+      else if (step === -1 && isFirst) goToStory();
+      else goToVocab(vocabIndex + step);
     },
-    [finishVocabulary, goToVocab, isFirst, isLast, vocabIndex],
+    [finishVocabulary, goToStory, goToVocab, isFirst, isLast, vocabIndex],
   );
 
   const toggleRating = useCallback(
@@ -78,7 +81,8 @@ export function VocabularyView() {
   // Phím tắt: ← → chuyển từ, Space xem nghĩa, 1–3 chọn mức nhớ
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || isTypingTarget(event.target) || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.defaultPrevented || isTypingTarget(event.target) || event.metaKey || event.ctrlKey || event.altKey)
+        return;
       if (event.key === "ArrowRight") go(1);
       else if (event.key === "ArrowLeft") go(-1);
       else if (event.key === " " && !isRevealed && vocab) {
@@ -95,7 +99,7 @@ export function VocabularyView() {
 
   const nextLabel = isLast
     ? lesson.grammarNote
-      ? "Xem ghi chú ngữ pháp"
+      ? "Xem mẹo ghép câu"
       : exerciseCount > 0
         ? `Làm bài tập (${exerciseCount} câu)`
         : "Hoàn thành"
@@ -117,7 +121,7 @@ export function VocabularyView() {
           <p id="rating-label" className="text-[15px] font-medium">
             Bạn nhớ từ này đến đâu?
           </p>
-          <p className="text-[13px] text-muted-foreground">Không bắt buộc, giúp phần Luyện tập ưu tiên từ chưa nhớ.</p>
+          <p className="text-[13px] text-muted-foreground">Không bắt buộc. Từ chưa nhớ sẽ được hỏi lại sớm hơn.</p>
         </div>
         <div role="group" aria-labelledby="rating-label" className="mt-3 flex flex-wrap gap-2">
           {WORD_RATINGS.map(({ value, label }) => {
@@ -169,9 +173,16 @@ export function VocabularyView() {
             </>
           )}
         </p>
-        <Button variant="outline" size="lg" className="px-4 sm:px-5" onClick={() => go(-1)} disabled={isFirst} aria-label="Từ trước">
+        <Button
+          variant="outline"
+          size="lg"
+          className="px-4 sm:px-5"
+          onClick={() => go(-1)}
+          disabled={isFirst && !lesson.story}
+          aria-label={isFirst && lesson.story ? "Xem lại đoạn hội thoại" : "Từ trước"}
+        >
           <ChevronLeft className="size-4" />
-          <span className="hidden sm:inline">Từ trước</span>
+          <span className="hidden sm:inline">{isFirst && lesson.story ? "Hội thoại" : "Từ trước"}</span>
         </Button>
         <Button size="lg" className="min-w-0 flex-1 sm:max-w-80 sm:flex-none sm:min-w-56" onClick={() => go(1)}>
           <span className="truncate">{nextLabel}</span>
@@ -211,7 +222,11 @@ function WordEntry({ vocab, index, total, isRevealed, onReveal }: WordEntryProps
             onClick={() => listen(vocab.word, 1, vocab.audioUrl)}
             className="inline-flex h-11 items-center gap-2 rounded-full bg-moss px-4 text-[15px] font-semibold text-white outline-none hover:bg-moss-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-moss dark:text-primary-foreground"
           >
-            {busy(vocab.word) ? <LoaderCircle className="size-[18px] animate-spin" /> : <Volume2 className="size-[18px]" />}
+            {busy(vocab.word) ? (
+              <LoaderCircle className="size-[18px] animate-spin" />
+            ) : (
+              <Volume2 className="size-[18px]" />
+            )}
             Nghe
           </button>
           <button
@@ -220,7 +235,11 @@ function WordEntry({ vocab, index, total, isRevealed, onReveal }: WordEntryProps
             onClick={() => listen(vocab.word, 0.75, vocab.audioUrl)}
             className="inline-flex h-11 items-center gap-2 rounded-full border border-line-strong px-4 text-[15px] font-medium outline-none hover:bg-card focus-visible:outline-2 focus-visible:outline-ring"
           >
-            {busy(vocab.word, 0.75) ? <LoaderCircle className="size-[18px] animate-spin" /> : <Snail className="size-[18px]" />}
+            {busy(vocab.word, 0.75) ? (
+              <LoaderCircle className="size-[18px] animate-spin" />
+            ) : (
+              <Snail className="size-[18px]" />
+            )}
             Nghe chậm
           </button>
         </div>

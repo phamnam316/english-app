@@ -6,6 +6,7 @@ import { Check, Mic, Square, Volume2, X } from "lucide-react";
 import { LessonFooter } from "@/components/lesson/lesson-footer";
 import { PracticeIntro, PracticeShell } from "@/components/practice/practice-shell";
 import { PracticeResult } from "@/components/practice/practice-result";
+import { useReviewLog } from "@/components/practice/review-log";
 import type { GamePhase, PracticeGameProps } from "@/components/practice/types";
 import { Button } from "@/components/ui/button";
 import { useSpeech } from "@/hooks/use-speech";
@@ -39,6 +40,7 @@ export function SpeakGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
   const [message, setMessage] = useState<string | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
   const missedRef = useRef<PracticeWord[]>([]);
+  const reviewLog = useReviewLog();
   // Mỗi lượt nghe 1 mã: kết quả về muộn của lượt cũ (đã bỏ qua từ, đã hủy) không được tính cho từ hiện tại
   const listenIdRef = useRef(0);
 
@@ -64,6 +66,7 @@ export function SpeakGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
       }
       setHeard(transcripts[0]);
       if (isSpokenMatch(transcripts, item.word)) {
+        reviewLog.record(item.word, true);
         playCorrectSound();
         setStatus("correct");
         setCorrectCount((c) => c + 1);
@@ -73,6 +76,7 @@ export function SpeakGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
       const used = attempts + 1;
       setAttempts(used);
       if (used >= MAX_ATTEMPTS) {
+        reviewLog.record(item.word, false);
         setStatus("failed");
         missedRef.current.push(item);
       } else {
@@ -94,7 +98,11 @@ export function SpeakGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
 
   const next = (skipped = false) => {
     cancelListening();
-    if (skipped && !isDone) missedRef.current.push(item);
+    if (skipped && !isDone) {
+      missedRef.current.push(item);
+      // Đã thử mà chưa đúng rồi mới bỏ qua: tính là chưa thuộc
+      if (attempts > 0) reviewLog.record(item.word, false);
+    }
     if (index + 1 >= items.length) {
       setPhase("done");
       return;
@@ -231,6 +239,7 @@ export function SpeakGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
           total={items.length}
           score={correctCount}
           review={missedRef.current}
+          reviewed={reviewLog.entries()}
           onReplay={onReplay}
           onSubmitted={onSubmitted}
         />

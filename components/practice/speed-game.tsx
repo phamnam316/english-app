@@ -5,6 +5,7 @@ import { Check, Flame, X } from "lucide-react";
 
 import { PracticeIntro, PracticeShell } from "@/components/practice/practice-shell";
 import { PracticeResult } from "@/components/practice/practice-result";
+import { useReviewLog } from "@/components/practice/review-log";
 import type { GamePhase, PracticeGameProps } from "@/components/practice/types";
 import { useCountdown } from "@/hooks/use-countdown";
 import { TIMED_ROUND_SECONDS, shuffle, weightedShuffle } from "@/lib/practice";
@@ -54,6 +55,7 @@ export function SpeedGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
   const [combo, setCombo] = useState(0);
   const [bestCombo, setBestCombo] = useState(0);
   const missedRef = useRef(new Map<string, PracticeWord>());
+  const reviewLog = useReviewLog();
 
   const remaining = useCountdown(TIMED_ROUND_SECONDS, phase === "playing", () => setPhase("done"));
 
@@ -61,6 +63,7 @@ export function SpeedGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
     if (phase !== "playing" || picked !== null) return;
     setPicked(option);
     const isCorrect = option === question.answer;
+    reviewLog.record(question.word.word, isCorrect);
     if (isCorrect) {
       playCorrectSound();
       setScore((s) => s + 1);
@@ -189,6 +192,7 @@ export function SpeedGame({ meta, words, bestScore, skipIntro, onReplay, onSubmi
           total={Math.max(1, score + wrong)}
           score={score}
           review={[...missedRef.current.values()]}
+          reviewed={reviewLog.entries()}
           onReplay={onReplay}
           onSubmitted={onSubmitted}
         />

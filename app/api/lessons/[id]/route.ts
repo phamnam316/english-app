@@ -4,7 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { requireSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError } from "@/lib/api-error";
 import { getNextLessonInCourse } from "@/lib/courses";
-import { toGrammarNote, wordKey } from "@/lib/word-rating";
+import { toGrammarNote, toLessonStory } from "@/lib/lesson-content";
+import { wordKey } from "@/lib/word-rating";
 import { getWordRatings } from "@/lib/words";
 import type { LessonDetailResponse } from "@/types/api";
 
@@ -41,6 +42,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
         order: true,
         xpReward: true,
         grammarNote: true,
+        story: true,
         unit: {
           select: {
             id: true,
@@ -97,6 +99,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
         unit,
         course: { id: course.id, title: course.title, level: course.level },
         grammarNote: toGrammarNote(lesson.grammarNote),
+        story: toLessonStory(lesson.story),
         vocabularies: lesson.vocabularies.map((vocab) => ({
           ...vocab,
           rating: ratings.get(wordKey(vocab.word)) ?? null,

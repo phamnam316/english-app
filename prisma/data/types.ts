@@ -1,8 +1,8 @@
 import type { Level, QuizType } from "@prisma/client";
 
-import type { GrammarNote } from "../../types/api";
+import type { GrammarNote, LessonStory } from "../../types/api";
 
-export type { GrammarNote };
+export type { GrammarNote, LessonStory };
 
 /** Kiểu dữ liệu nội dung khóa học dùng cho prisma/seed.ts */
 
@@ -31,7 +31,9 @@ export interface SeedLesson {
   title: string;
   /** Mặc định 10 XP */
   xp?: number;
-  /** Ghi chú ngữ pháp hiện giữa phần học từ và phần làm bài */
+  /** Đoạn hội thoại tình huống mở đầu bài (đặt từ mới vào ngữ cảnh) */
+  story?: LessonStory;
+  /** Ghi chú ngữ pháp ("Mẹo ghép câu") hiện giữa phần học từ và phần làm bài */
   grammar?: GrammarNote;
   vocab: SeedVocab[];
   exercises: SeedExercise[];

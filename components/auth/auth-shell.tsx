@@ -21,7 +21,8 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
             Học tiếng Anh mỗi ngày, một bài ngắn.
           </p>
           <p className="mt-4 max-w-md text-[15px] leading-relaxed text-muted-foreground">
-            Từ vựng A1–A2 có phát âm, câu ví dụ có bản dịch, ghi chú ngữ pháp và trò chơi ôn tập.
+            Mỗi ngày 15 phút: nghe, nhắc lại, chơi một trò nhỏ. Sau 30 ngày, bạn tự giới thiệu được bản thân bằng
+            tiếng Anh.
           </p>
 
           <figure className="mt-10 max-w-lg rounded-lg border border-line bg-card px-8 py-7">
@@ -41,9 +42,9 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
 
           <dl className="mt-8 grid max-w-lg grid-cols-3 divide-x divide-line border-y border-line py-4">
             {[
-              ["2.307", "từ A1–A2"],
-              ["30", "ngày giáo án"],
-              ["5", "trò ôn tập"],
+              ["2.307", "từ hay dùng nhất"],
+              ["30", "bài, mỗi bài 15 phút"],
+              ["5", "trò chơi ôn bài"],
             ].map(([value, label]) => (
               <div key={label} className="flex flex-col-reverse px-4 first:pl-0">
                 <dt className="text-[13px] text-muted-foreground">{label}</dt>

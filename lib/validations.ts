@@ -132,6 +132,13 @@ export const practiceResultSchema = z
     correct: z.number({ error: "correct phải là số." }).int().min(0).max(200),
     total: z.number({ error: "total phải là số." }).int().min(1).max(200),
     score: z.number({ error: "score phải là số." }).int().min(0).max(1000),
+    /** Đúng/sai từng từ trong lượt chơi (để cập nhật lịch ôn) */
+    reviewed: z
+      .array(z.object({ word: z.string().trim().min(1).max(100), correct: z.boolean() }), {
+        error: "reviewed phải là một mảng.",
+      })
+      .max(100, "Quá nhiều từ trong 1 lượt.")
+      .optional(),
   })
   .refine((data) => data.correct <= data.total, { error: "Số câu đúng không thể lớn hơn số câu.", path: ["correct"] });
 

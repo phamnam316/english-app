@@ -39,7 +39,7 @@ const phonetic = Noto_Sans({
 
 export const metadata: Metadata = {
   title: { default: APP_NAME, template: `%s | ${APP_NAME}` },
-  description: "Học từ vựng, ngữ pháp và luyện nói tiếng Anh mỗi ngày.",
+  description: "Mỗi ngày 15 phút học tiếng Anh: nghe, nhắc lại, chơi trò ôn bài. Dành cho người mới bắt đầu.",
 };
 
 export const viewport: Viewport = {

@@ -10,20 +10,21 @@ import {
   shortUnitTitle,
   type NextLessonInfo,
 } from "@/lib/course-progress";
-import type { CourseSummary, VocabularyItem } from "@/types/api";
+import type { CourseSummary, HomeResponse } from "@/types/api";
 
 interface TodayCardProps {
   course: CourseSummary;
   next: NextLessonInfo;
   /** Tên để chào, vd "Minh Anh" */
   name: string;
-  /** Từ của bài (tải riêng); undefined khi đang tải */
-  words: VocabularyItem[] | undefined;
+  /** Từ của bài để xem trước; undefined khi đang tải */
+  words: HomeResponse["nextLessonWords"] | undefined;
 }
 
 /**
  * Khối "Bài hôm nay" ở trang chủ: bài cần học tiếp, độ dài bài, các từ sẽ học và 1 nút để vào học ngay.
- * Ruy băng màu đất nung đánh dấu đây là chỗ đang học dở.
+ * Ruy băng màu đất nung đánh dấu đây là chỗ đang học dở. Trên điện thoại nút "Học tiếp" đứng trước
+ * danh sách từ để luôn nằm trong màn hình đầu tiên.
  */
 export function TodayCard({ course, next, name, words }: TodayCardProps) {
   const { lesson, unit } = next;
@@ -74,43 +75,47 @@ export function TodayCard({ course, next, name, words }: TodayCardProps) {
         </span>
       </p>
 
-      {lesson.vocabCount > 0 && (
-        <div className="mt-8 border-t border-dashed border-line-strong pt-6">
-          <p className="text-[13px] font-medium text-muted-foreground">Trong bài này</p>
-          {words ? (
-            <ul className="mt-3 flex flex-wrap gap-x-7 gap-y-3">
-              {words.slice(0, 10).map((word) => (
-                <li key={word.id} className="flex items-baseline gap-2">
-                  <span className="font-serif text-[19px]">{word.word}</span>
-                  {word.phonetic && (
-                    <span className="hidden font-ipa text-[13px] text-muted-foreground sm:inline">{word.phonetic}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3" aria-hidden>
-              {Array.from({ length: Math.min(lesson.vocabCount, 6) }, (_, i) => (
-                <Skeleton key={i} className="h-6 w-24" />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      <div className="flex flex-col">
+        {lesson.vocabCount > 0 && (
+          <div className="order-2 mt-8 border-t border-dashed border-line-strong pt-6 lg:order-1">
+            <p className="text-[13px] font-medium text-muted-foreground">Trong bài này</p>
+            {words ? (
+              <ul className="mt-3 flex flex-wrap gap-x-7 gap-y-3">
+                {words.slice(0, 10).map((word) => (
+                  <li key={word.id} className="flex items-baseline gap-2">
+                    <span className="font-serif text-[19px]">{word.word}</span>
+                    {word.phonetic && (
+                      <span className="hidden font-ipa text-[13px] text-muted-foreground sm:inline">
+                        {word.phonetic}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3" aria-hidden>
+                {Array.from({ length: Math.min(lesson.vocabCount, 6) }, (_, i) => (
+                  <Skeleton key={i} className="h-6 w-24" />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
-      <div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-4">
-        <Button asChild size="lg" className="h-auto min-h-[52px] py-3 text-base leading-snug whitespace-normal">
-          <Link href={`/lessons/${lesson.id}`}>
-            {isResuming ? "Học tiếp" : "Bắt đầu"}: {lesson.title}
-            <ArrowRight className="size-[18px]" />
+        <div className="order-1 mt-8 flex flex-wrap items-center gap-x-7 gap-y-4 lg:order-2">
+          <Button asChild size="lg" className="h-auto min-h-[52px] py-3 text-base leading-snug whitespace-normal">
+            <Link href={`/lessons/${lesson.id}`}>
+              {isResuming ? "Học tiếp" : "Bắt đầu"}: {lesson.title}
+              <ArrowRight className="size-[18px]" />
+            </Link>
+          </Button>
+          <Link
+            href={`/courses/${course.id}`}
+            className="text-[15px] font-medium text-moss-strong underline decoration-line-strong underline-offset-[5px] outline-none hover:decoration-moss focus-visible:decoration-moss"
+          >
+            Xem lộ trình khóa học
           </Link>
-        </Button>
-        <Link
-          href={`/courses/${course.id}`}
-          className="text-[15px] font-medium text-moss-strong underline decoration-line-strong underline-offset-[5px] outline-none hover:decoration-moss focus-visible:decoration-moss"
-        >
-          Xem lộ trình khóa học
-        </Link>
+        </div>
       </div>
     </section>
   );
@@ -126,7 +131,11 @@ function Dot() {
 
 export function TodayCardSkeleton() {
   return (
-    <div aria-busy="true" aria-label="Đang tải bài hôm nay" className="rounded-lg border border-line bg-card px-6 py-10 sm:px-10">
+    <div
+      aria-busy="true"
+      aria-label="Đang tải bài hôm nay"
+      className="rounded-lg border border-line bg-card px-6 py-10 sm:px-10"
+    >
       <Skeleton className="h-4 w-56" />
       <Skeleton className="mt-4 h-12 w-3/4" />
       <Skeleton className="mt-5 h-4 w-48" />

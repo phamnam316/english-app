@@ -68,7 +68,7 @@ function UserStats({ user }: { user: Session["user"] }) {
         <span className="text-muted-foreground">ngày</span>
         <span className="sr-only">học liên tiếp</span>
       </span>
-      <span className="inline-flex items-baseline gap-1 tabular-nums" title={`${user.xp} điểm kinh nghiệm`}>
+      <span className="inline-flex items-baseline gap-1 tabular-nums" title={`${user.xp} XP: điểm siêng năng, cộng khi học xong bài và ôn bài`}>
         <span className="font-semibold">{user.xp}</span>
         <span className="text-muted-foreground">XP</span>
       </span>

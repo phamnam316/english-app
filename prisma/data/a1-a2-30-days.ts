@@ -2,6 +2,7 @@
  * Giáo án "Tiếng Anh A1–A2 trong 30 ngày".
  *
  * - 5 chương x 6 ngày; ngày cuối mỗi chương là bài ôn tập (không có từ mới, nhiều bài tập hơn).
+ * - Chương 1 kể chuyện "Quán cà phê của Lan": mỗi bài mở đầu bằng 1 đoạn hội thoại dùng chính các từ sắp học.
  * - Mỗi bài thường: 6 từ mới (thẻ từ vựng) + ghi chú ngữ pháp + 6–7 bài tập: trắc nghiệm, điền từ,
  *   nghe (máy đọc) và xếp thẻ từ thành câu. Bài ôn tập có thêm câu tự nói/viết (có micro) làm thử thách.
  * - Ngữ pháp tăng dần: to be -> a/an -> have/has -> there is/are -> hiện tại đơn -> tần suất
@@ -17,7 +18,7 @@ const REVIEW_XP = 20;
 export const A1_A2_30_DAYS: SeedCourse = {
   title: "Tiếng Anh A1–A2 trong 30 ngày",
   description:
-    "Lộ trình 30 ngày cho người mới bắt đầu: mỗi ngày 1 bài khoảng 15 phút gồm từ mới và bài tập. Cuối mỗi chương có bài ôn tập, ngày 30 là bài kiểm tra cuối khóa.",
+    "Như tập thể dục cho miệng: mỗi ngày một bài ngắn khoảng 15 phút. Cứ 6 ngày có một bài ôn để nhớ lâu, ngày 30 làm bài kiểm tra nhỏ.",
   level: "BEGINNER",
   isPublished: true,
   units: [
@@ -29,6 +30,19 @@ export const A1_A2_30_DAYS: SeedCourse = {
       lessons: [
         {
           title: "Chào hỏi và tạm biệt",
+          story: {
+            title: "Buổi sáng ở quán cà phê",
+            intro: "Lan làm phục vụ ở một quán cà phê nhỏ tại Hội An. Sáng nay, anh Tom, một vị khách quen, ghé quán.",
+            main: "Lan",
+            lines: [
+              { speaker: "Lan", en: "Good morning!", vi: "Chào buổi sáng!" },
+              { speaker: "Tom", en: "Hello! Good morning, Lan.", vi: "Xin chào! Chào buổi sáng, Lan." },
+              { speaker: "Lan", en: "Here is your coffee.", vi: "Cà phê của anh đây." },
+              { speaker: "Tom", en: "Thank you very much!", vi: "Cảm ơn em nhiều!" },
+              { speaker: "Tom", en: "Goodbye. See you tomorrow!", vi: "Tạm biệt. Hẹn gặp lại ngày mai!" },
+              { speaker: "Lan", en: "Goodbye, Tom!", vi: "Tạm biệt anh Tom!" },
+            ],
+          },
           grammar: {
             title: "Chào theo thời điểm trong ngày",
             intro:
@@ -72,6 +86,20 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Giới thiệu bản thân (to be)",
+          story: {
+            title: "Vị khách mới",
+            intro: "Một cô gái nước ngoài lần đầu đến quán và bắt chuyện với Lan.",
+            main: "Lan",
+            lines: [
+              { speaker: "Anna", en: "Hello! My name is Anna.", vi: "Xin chào! Tên chị là Anna." },
+              { speaker: "Lan", en: "Hi, Anna. I am Lan. Nice to meet you.", vi: "Chào chị Anna. Em là Lan. Rất vui được gặp chị." },
+              { speaker: "Anna", en: "Nice to meet you too. Are you Vietnamese?", vi: "Chị cũng rất vui được gặp em. Em là người Việt à?" },
+              { speaker: "Lan", en: "Yes, I am. I am from Hoi An. Where are you from?", vi: "Vâng ạ. Em đến từ Hội An. Chị đến từ đâu ạ?" },
+              { speaker: "Anna", en: "I am from Canada. It is a big country.", vi: "Chị đến từ Canada. Đó là một đất nước rộng lớn." },
+              { speaker: "Lan", en: "Are you a student?", vi: "Chị là sinh viên ạ?" },
+              { speaker: "Anna", en: "Yes, I am a student.", vi: "Ừ, chị là sinh viên." },
+            ],
+          },
           grammar: {
             title: "Động từ to be: am / is / are",
             intro: "**to be** nghĩa là “là, thì, ở”. Chọn *am*, *is* hay *are* theo chủ ngữ đứng trước.",
@@ -110,6 +138,19 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Số đếm và tuổi",
+          story: {
+            title: "Xin số điện thoại",
+            intro: "Anna muốn làm bạn với Lan để luyện nói tiếng Việt.",
+            main: "Lan",
+            lines: [
+              { speaker: "Anna", en: "How old are you, Lan?", vi: "Em bao nhiêu tuổi vậy Lan?" },
+              { speaker: "Lan", en: "I am twenty years old.", vi: "Em hai mươi tuổi." },
+              { speaker: "Lan", en: "I have one sister. She is twelve.", vi: "Em có một đứa em gái. Nó mười hai tuổi." },
+              { speaker: "Anna", en: "What is your phone number?", vi: "Số điện thoại của em là gì?" },
+              { speaker: "Lan", en: "It is zero nine zero five, one two three, four five six.", vi: "Là 0905 123 456 ạ." },
+              { speaker: "Anna", en: "Thank you! I will call you.", vi: "Cảm ơn em! Chị sẽ gọi cho em." },
+            ],
+          },
           grammar: {
             title: "Hỏi và nói tuổi",
             intro: "Tiếng Anh dùng **be** (am/is/are) để nói tuổi, không dùng *have*.",
@@ -144,6 +185,19 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Nghề nghiệp (a/an)",
+          story: {
+            title: "Anh làm nghề gì?",
+            intro: "Buổi chiều quán vắng khách, Lan trò chuyện với anh Tom.",
+            main: "Lan",
+            lines: [
+              { speaker: "Lan", en: "What is your job, Tom?", vi: "Anh làm nghề gì vậy, anh Tom?" },
+              { speaker: "Tom", en: "I am an engineer. I work in an office.", vi: "Anh là kỹ sư. Anh làm việc ở văn phòng." },
+              { speaker: "Tom", en: "And you? Are you a student?", vi: "Còn em? Em là sinh viên à?" },
+              { speaker: "Lan", en: "No, I am a waitress. My mother is a nurse.", vi: "Không ạ, em là nhân viên phục vụ. Mẹ em là y tá." },
+              { speaker: "Tom", en: "My father is a doctor.", vi: "Bố anh là bác sĩ." },
+              { speaker: "Lan", en: "And my English teacher is from London!", vi: "Còn cô giáo tiếng Anh của em đến từ London đấy!" },
+            ],
+          },
           grammar: {
             title: "Mạo từ a / an",
             intro:
@@ -179,6 +233,19 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Đồ vật trong lớp (this/that, số nhiều)",
+          story: {
+            title: "Lớp tiếng Anh buổi tối",
+            intro: "Tan ca, Lan đến lớp tiếng Anh buổi tối gần quán.",
+            main: "Lan",
+            lines: [
+              { speaker: "Cô giáo", en: "Good evening, class!", vi: "Chào buổi tối cả lớp!" },
+              { speaker: "Cô giáo", en: "Lan, is this your book?", vi: "Lan, đây có phải sách của em không?" },
+              { speaker: "Lan", en: "Yes, it is. And that is my pen.", vi: "Dạ phải ạ. Còn kia là bút của em." },
+              { speaker: "Cô giáo", en: "These bags are new!", vi: "Mấy cái cặp này mới quá!" },
+              { speaker: "Lan", en: "Yes, but those chairs are old.", vi: "Dạ, nhưng mấy cái ghế kia thì cũ rồi ạ." },
+              { speaker: "Cô giáo", en: "Please open the window, Lan.", vi: "Lan mở cửa sổ giúp cô nhé." },
+            ],
+          },
           grammar: {
             title: "this / that / these / those và số nhiều",
             intro:
@@ -225,6 +292,18 @@ export const A1_A2_30_DAYS: SeedCourse = {
         },
         {
           title: "Ôn tập: Làm quen",
+          story: {
+            title: "Nhật ký của Lan",
+            intro: "Cuối ngày, Lan viết vài dòng nhật ký bằng tiếng Anh. Đọc xem bạn hiểu được bao nhiêu nhé!",
+            main: "Lan",
+            lines: [
+              { speaker: "Lan", en: "Today I met a new friend. Her name is Anna.", vi: "Hôm nay mình quen một người bạn mới. Chị ấy tên là Anna." },
+              { speaker: "Lan", en: "She is from Canada. She is a student.", vi: "Chị ấy đến từ Canada. Chị ấy là sinh viên." },
+              { speaker: "Lan", en: "She is twenty-two years old.", vi: "Chị ấy hai mươi hai tuổi." },
+              { speaker: "Lan", en: "Tom is an engineer. He works in an office.", vi: "Anh Tom là kỹ sư. Anh ấy làm việc ở văn phòng." },
+              { speaker: "Lan", en: "I am a waitress, and I love my job!", vi: "Mình là nhân viên phục vụ, và mình rất thích công việc của mình!" },
+            ],
+          },
           xp: REVIEW_XP,
           vocab: [],
           exercises: [

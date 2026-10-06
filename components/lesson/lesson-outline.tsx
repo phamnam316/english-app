@@ -7,40 +7,73 @@ import { cn } from "@/lib/utils";
 import { useLessonStore } from "@/store/useLessonStore";
 
 /**
- * Dàn bài (cột trái, máy tính): Phần 1 học từ (đã xem / đang xem / chưa xem), ghi chú ngữ pháp, Phần 2 làm bài.
- * Trong phần học từ và ngữ pháp có thể bấm để quay lại bất kỳ từ nào.
+ * Dàn bài (cột trái, máy tính): tình huống, Phần 1 học từ (đã xem / đang xem / chưa xem), mẹo ghép câu, Phần 2 làm bài.
+ * Trước khi làm bài có thể bấm để quay lại bất kỳ phần nào.
  */
 export function LessonOutline({ className }: { className?: string }) {
-  const { lesson, vocabularies, exercises, phase, vocabIndex, maxVocabIndex, currentIndex, results, goToVocab, goToGrammar } =
-    useLessonStore(
-      useShallow((s) => ({
-        lesson: s.lesson,
-        vocabularies: s.vocabularies,
-        exercises: s.exercises,
-        phase: s.phase,
-        vocabIndex: s.vocabIndex,
-        maxVocabIndex: s.maxVocabIndex,
-        currentIndex: s.currentIndex,
-        results: s.results,
-        goToVocab: s.goToVocab,
-        goToGrammar: s.goToGrammar,
-      })),
-    );
+  const {
+    lesson,
+    vocabularies,
+    exercises,
+    phase,
+    vocabIndex,
+    maxVocabIndex,
+    currentIndex,
+    results,
+    goToStory,
+    goToVocab,
+    goToGrammar,
+  } = useLessonStore(
+    useShallow((s) => ({
+      lesson: s.lesson,
+      vocabularies: s.vocabularies,
+      exercises: s.exercises,
+      phase: s.phase,
+      vocabIndex: s.vocabIndex,
+      maxVocabIndex: s.maxVocabIndex,
+      currentIndex: s.currentIndex,
+      results: s.results,
+      goToStory: s.goToStory,
+      goToVocab: s.goToVocab,
+      goToGrammar: s.goToGrammar,
+    })),
+  );
   if (!lesson) return null;
 
-  const canNavigate = phase === "vocabulary" || phase === "grammar";
-  const vocabFinished = phase !== "vocabulary";
+  const canNavigate = phase === "story" || phase === "vocabulary" || phase === "grammar";
+  const vocabFinished = phase !== "story" && phase !== "vocabulary";
   const quizStarted = phase === "quiz" || phase === "completed";
 
   return (
     <nav aria-label="Dàn bài" className={cn("border-r border-line py-9 pr-8", className)}>
+      {lesson.story && (
+        <div className={cn(vocabularies.length > 0 && "mb-7 border-b border-line pb-5")}>
+          <p className="text-[13px] font-semibold text-muted-foreground">Tình huống</p>
+          <button
+            type="button"
+            disabled={!canNavigate}
+            onClick={goToStory}
+            aria-current={phase === "story" ? "step" : undefined}
+            className={cn(
+              "mt-2 flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left text-[15px] outline-none transition-colors focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-default",
+              phase === "story" ? "bg-card font-semibold ring-1 ring-line" : "text-muted-foreground",
+              canNavigate && phase !== "story" && "hover:bg-card",
+            )}
+          >
+            {phase !== "story" && (
+              <Check aria-label="Đã xem" className="size-3.5 shrink-0 text-success" strokeWidth={2.5} />
+            )}
+            {lesson.story.title}
+          </button>
+        </div>
+      )}
       {vocabularies.length > 0 && (
         <>
           <p className="text-[13px] font-semibold text-muted-foreground">Phần 1 · Học từ</p>
           <ol className="mt-3 space-y-0.5">
             {vocabularies.map((vocab, index) => {
               const isCurrent = phase === "vocabulary" && index === vocabIndex;
-              const isSeen = vocabFinished || index < vocabIndex || index <= maxVocabIndex;
+              const isSeen = vocabFinished || (phase !== "story" && (index < vocabIndex || index <= maxVocabIndex));
               return (
                 <li key={vocab.id}>
                   <button
@@ -59,7 +92,10 @@ export function LessonOutline({ className }: { className?: string }) {
                     ) : isSeen ? (
                       <Check aria-label="Đã xem" className="size-3.5 shrink-0 text-success" strokeWidth={2.5} />
                     ) : (
-                      <span aria-hidden className="mr-0.5 ml-1 size-2 shrink-0 rounded-full border border-line-strong" />
+                      <span
+                        aria-hidden
+                        className="mr-0.5 ml-1 size-2 shrink-0 rounded-full border border-line-strong"
+                      />
                     )}
                     <span className="truncate font-serif text-[17px]">{vocab.word}</span>
                   </button>
@@ -72,7 +108,7 @@ export function LessonOutline({ className }: { className?: string }) {
 
       {lesson.grammarNote && (
         <div className={cn(vocabularies.length > 0 && "mt-7 border-t border-line pt-5")}>
-          <p className="text-[13px] font-semibold text-muted-foreground">Ghi chú ngữ pháp</p>
+          <p className="text-[13px] font-semibold text-muted-foreground">Mẹo ghép câu</p>
           <button
             type="button"
             disabled={!canNavigate}
@@ -124,9 +160,7 @@ export function LessonOutline({ className }: { className?: string }) {
               })}
             </ol>
           ) : (
-            <p className="mt-2 px-2.5 text-[15px] text-muted-foreground">
-              {exercises.length} câu · mở sau phần học từ
-            </p>
+            <p className="mt-2 px-2.5 text-[15px] text-muted-foreground">{exercises.length} câu · mở sau phần học từ</p>
           )}
         </div>
       )}
@@ -134,7 +168,7 @@ export function LessonOutline({ className }: { className?: string }) {
   );
 }
 
-/** Điện thoại: dải bước gọn dưới header (Học từ · Ngữ pháp · Làm bài) */
+/** Điện thoại: dải bước gọn dưới header (Tình huống · Học từ · Mẹo ghép câu · Làm bài) */
 export function LessonSteps({ className }: { className?: string }) {
   const { lesson, vocabCount, exerciseCount, phase, vocabIndex, currentIndex } = useLessonStore(
     useShallow((s) => ({
@@ -149,14 +183,18 @@ export function LessonSteps({ className }: { className?: string }) {
   if (!lesson || phase === "completed") return null;
 
   const steps = [
-    vocabCount > 0 && { key: "vocabulary", label: phase === "vocabulary" ? `Học từ ${vocabIndex + 1}/${vocabCount}` : "Học từ" },
-    lesson.grammarNote && { key: "grammar", label: "Ngữ pháp" },
+    lesson.story && { key: "story", label: "Tình huống" },
+    vocabCount > 0 && {
+      key: "vocabulary",
+      label: phase === "vocabulary" ? `Học từ ${vocabIndex + 1}/${vocabCount}` : "Học từ",
+    },
+    lesson.grammarNote && { key: "grammar", label: "Mẹo ghép câu" },
     exerciseCount > 0 && {
       key: "quiz",
       label: phase === "quiz" ? `Làm bài ${currentIndex + 1}/${exerciseCount}` : `Làm bài ${exerciseCount} câu`,
     },
   ].filter(Boolean) as Array<{ key: string; label: string }>;
-  const order = ["vocabulary", "grammar", "quiz"];
+  const order = ["story", "vocabulary", "grammar", "quiz"];
 
   return (
     <ol className={cn("flex items-center gap-2 overflow-x-auto px-4 py-3 text-[13px] sm:px-8", className)}>
@@ -175,7 +213,10 @@ export function LessonSteps({ className }: { className?: string }) {
               {isDone ? (
                 <Check aria-hidden className="size-3.5 text-success" strokeWidth={2.5} />
               ) : (
-                <span aria-hidden className={cn("size-1.5 rounded-full", isCurrent ? "bg-clay" : "border border-line-strong")} />
+                <span
+                  aria-hidden
+                  className={cn("size-1.5 rounded-full", isCurrent ? "bg-clay" : "border border-line-strong")}
+                />
               )}
               {step.label}
             </span>

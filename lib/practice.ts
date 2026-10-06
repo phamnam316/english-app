@@ -99,6 +99,9 @@ export const PRACTICE_MODES: PracticeModeMeta[] = [
   },
 ];
 
+/** Đường dẫn /practice/quick: "Ôn nhanh 2 phút", web tự chọn trò và ưu tiên từ đến hạn ôn */
+export const QUICK_REVIEW_SLUG = "quick";
+
 export function getPracticeMode(slug: string): PracticeModeMeta | null {
   return PRACTICE_MODES.find((m) => m.slug === slug) ?? null;
 }
@@ -122,14 +125,18 @@ export function shuffle<T>(items: readonly T[]): T[] {
 const RATING_WEIGHT: Record<number, number> = { 1: 4, 2: 2.5, 3: 0.6 };
 const UNRATED_WEIGHT = 1.5;
 
+/** Từ đến hạn ôn được ưu tiên gấp mấy lần */
+const DUE_WEIGHT = 3;
+
 /**
  * Trộn có ưu tiên (thuật toán Efraimidis–Spirakis): từ có trọng số cao thường đứng trước,
  * nhưng thứ tự vẫn ngẫu nhiên. Dùng thay shuffle() khi chọn từ cho 1 lượt chơi.
  */
-export function weightedShuffle<T extends { rating: number | null }>(items: readonly T[]): T[] {
+export function weightedShuffle<T extends { rating: number | null; due?: boolean }>(items: readonly T[]): T[] {
   return items
     .map((item) => {
-      const weight = item.rating === null ? UNRATED_WEIGHT : (RATING_WEIGHT[item.rating] ?? UNRATED_WEIGHT);
+      const base = item.rating === null ? UNRATED_WEIGHT : (RATING_WEIGHT[item.rating] ?? UNRATED_WEIGHT);
+      const weight = item.due ? base * DUE_WEIGHT : base;
       return { item, key: Math.random() ** (1 / weight) };
     })
     .sort((a, b) => b.key - a.key)

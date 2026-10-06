@@ -28,6 +28,8 @@ interface PracticeResultProps {
   extra?: string;
   /** Các từ làm sai, để ôn lại */
   review?: PracticeWord[];
+  /** Đúng/sai từng từ, để cập nhật lịch ôn */
+  reviewed?: Array<{ word: string; correct: boolean }>;
   onReplay: () => void;
   onSubmitted?: (result: PracticeResultResponse) => void;
 }
@@ -48,6 +50,7 @@ export function PracticeResult({
   score,
   extra,
   review = [],
+  reviewed,
   onReplay,
   onSubmitted,
 }: PracticeResultProps) {
@@ -64,9 +67,9 @@ export function PracticeResult({
   const save = useCallback(async () => {
     setState({ status: "saving" });
     try {
-      const result = await api.submitPractice({ mode, correct, total: Math.max(total, 1), score });
+      const result = await api.submitPractice({ mode, correct, total: Math.max(total, 1), score, reviewed });
       setState({ status: "saved", result });
-      invalidateApiCache("practice", "leaderboard");
+      invalidateApiCache("home", "practice", "leaderboard");
       onSubmittedRef.current?.(result);
       // Header hiện XP/streak mới ngay (xem giải thích trong completion-screen)
       void refreshSession({});
@@ -74,6 +77,8 @@ export function PracticeResult({
     } catch (error) {
       setState({ status: "error", message: toApiClientError(error).message });
     }
+    // reviewed chỉ đọc 1 lần lúc lưu, không cần làm phụ thuộc
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [correct, mode, refreshSession, score, timed, total]);
 
   // Lưu đúng 1 lần khi vào màn kết quả

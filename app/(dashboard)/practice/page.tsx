@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LoaderCircle, Volume2 } from "lucide-react";
+import { ArrowRight, LoaderCircle, Volume2 } from "lucide-react";
 
 import { AppHeader } from "@/components/app-header";
 import { EmptyState } from "@/components/empty-state";
@@ -13,19 +13,23 @@ import { useApiQuery } from "@/hooks/use-api-query";
 import { useSpeech } from "@/hooks/use-speech";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { api } from "@/lib/api-client";
-import { PRACTICE_MAX_XP_PER_ROUND, PRACTICE_MIN_WORDS, PRACTICE_MODES } from "@/lib/practice";
+import { PRACTICE_MAX_XP_PER_ROUND, PRACTICE_MIN_WORDS, PRACTICE_MODES, QUICK_REVIEW_SLUG } from "@/lib/practice";
 import { WORD_RATINGS } from "@/lib/word-rating";
 import { cn } from "@/lib/utils";
 import type { PracticeDataResponse, PracticeWord } from "@/types/api";
 
 export default function PracticePage() {
-  const { data, error, isLoading, refetch } = useApiQuery((signal) => api.getPractice(signal), [], { cacheKey: "practice" });
+  const { data, error, isLoading, refetch } = useApiQuery((signal) => api.getPractice(signal), [], {
+    cacheKey: "practice",
+  });
   const { isSupported: canRecognizeSpeech } = useSpeechRecognition();
 
   let content: React.ReactNode;
   if (isLoading) content = <PracticeSkeleton />;
   else if (error) {
-    content = <ErrorState title="Không tải được trang luyện tập" error={error} onRetry={refetch} backHref="/dashboard" />;
+    content = (
+      <ErrorState title="Không tải được trang luyện tập" error={error} onRetry={refetch} backHref="/dashboard" />
+    );
   } else if (data) {
     const notEnough = data.words.length < PRACTICE_MIN_WORDS;
     content = (
@@ -34,9 +38,28 @@ export default function PracticePage() {
           <h1 className="text-[2.5rem] leading-[1.08] tracking-[-0.015em] sm:text-[3.25rem]">Ôn lại từ đã học</h1>
           <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
             {notEnough
-              ? `Cần ít nhất ${PRACTICE_MIN_WORDS} từ để chơi. Học bài đầu tiên của một khóa học để mở các trò ôn tập.`
-              : `Mỗi lượt 1–2 phút với ${data.words.length} từ trong các bài bạn đã mở. Từ bạn đánh dấu “Chưa nhớ” sẽ xuất hiện nhiều hơn.`}
+              ? `Cần ít nhất ${PRACTICE_MIN_WORDS} từ để chơi. Học xong bài đầu tiên là chơi được ngay.`
+              : "Trò chơi 2 phút để nhớ lại từ cũ. Từ nào bạn hay quên, trò chơi hỏi lại nhiều hơn."}
           </p>
+
+          {!notEnough && (
+            <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-4 rounded-lg border border-line bg-card px-5 py-4 sm:px-6">
+              <p className="flex items-baseline gap-2.5">
+                <span className="font-serif text-[2.25rem] leading-none tabular-nums">
+                  {data.dueCount > 0 ? data.dueCount : data.words.length}
+                </span>
+                <span className="text-[15px] text-muted-foreground">
+                  {data.dueCount > 0 ? "từ cần ôn hôm nay" : "từ bạn đã học, hôm nay chưa có từ đến hạn"}
+                </span>
+              </p>
+              <Button asChild size="lg" className="sm:ml-auto">
+                <Link href={`/practice/${QUICK_REVIEW_SLUG}`}>
+                  Ôn nhanh 2 phút
+                  <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+            </div>
+          )}
 
           {notEnough ? (
             <EmptyState
@@ -50,17 +73,20 @@ export default function PracticePage() {
               }
             />
           ) : (
-            <ul className="mt-8 border-t-2 border-foreground">
-              {PRACTICE_MODES.map((meta) => (
-                <li key={meta.mode} className="border-b border-line">
-                  <PracticeModeRow
-                    meta={meta}
-                    bestScore={data.stats.bestScores[meta.mode]}
-                    note={meta.mode === "PRONUNCIATION" && !canRecognizeSpeech ? "Cần Chrome hoặc Edge" : undefined}
-                  />
-                </li>
-              ))}
-            </ul>
+            <>
+              <h2 className="mt-10 font-sans text-[15px] font-semibold tracking-normal">Hoặc tự chọn trò</h2>
+              <ul className="mt-3 border-t-2 border-foreground">
+                {PRACTICE_MODES.map((meta) => (
+                  <li key={meta.mode} className="border-b border-line">
+                    <PracticeModeRow
+                      meta={meta}
+                      bestScore={data.stats.bestScores[meta.mode]}
+                      note={meta.mode === "PRONUNCIATION" && !canRecognizeSpeech ? "Cần Chrome hoặc Edge" : undefined}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </div>
 
@@ -114,7 +140,12 @@ function MemorySummary({ words }: { words: PracticeWord[] }) {
     count: words.filter((w) => w.rating === value).length,
   }));
   const unrated = words.filter((w) => w.rating === null).length;
-  const weak = words.filter((w) => w.rating === 1).concat(words.filter((w) => w.rating === 2)).slice(0, 8);
+  // Nên ôn trước: từ đến hạn ôn hôm nay, rồi đến từ tự đánh giá Chưa nhớ / Hơi nhớ
+  const weak = [
+    ...words.filter((w) => w.due),
+    ...words.filter((w) => !w.due && w.rating === 1),
+    ...words.filter((w) => !w.due && w.rating === 2),
+  ].slice(0, 8);
 
   return (
     <section aria-labelledby="memory-heading">
@@ -167,7 +198,11 @@ function MemorySummary({ words }: { words: PracticeWord[] }) {
                   onClick={() => void speak(word.word, { audioUrl: word.audioUrl })}
                   className="grid size-9 shrink-0 place-items-center rounded-full border border-line-strong text-moss outline-none hover:border-moss focus-visible:outline-2 focus-visible:outline-ring"
                 >
-                  {isLoading(word.word) ? <LoaderCircle className="size-4 animate-spin" /> : <Volume2 className="size-4" />}
+                  {isLoading(word.word) ? (
+                    <LoaderCircle className="size-4 animate-spin" />
+                  ) : (
+                    <Volume2 className="size-4" />
+                  )}
                 </button>
               </li>
             ))}

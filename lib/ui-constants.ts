@@ -11,15 +11,15 @@ interface LevelMeta {
 
 export const LEVEL_META: Record<Level, LevelMeta> = {
   BEGINNER: {
-    label: "Beginner",
+    label: "Mới bắt đầu",
     cefr: "A1–A2",
   },
   INTERMEDIATE: {
-    label: "Intermediate",
+    label: "Trung cấp",
     cefr: "B1–B2",
   },
   ADVANCED: {
-    label: "Advanced",
+    label: "Nâng cao",
     cefr: "C1–C2",
   },
 };
