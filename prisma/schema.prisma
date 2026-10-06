@@ -267,3 +267,17 @@ model WordReview {
   @@unique([userId, word])
   @@index([userId, dueAt])
 }
+
+// ---------------------------------------------------------------------------
+// Xem phim: phụ đề song ngữ của các clip YouTube trong lib/videos/catalog.ts
+// ---------------------------------------------------------------------------
+
+/// Phụ đề của 1 clip, do ADMIN căn thời gian ở trang /videos/<slug>/studio
+model VideoSubtitle {
+  /// slug của clip trong lib/videos/catalog.ts
+  clipSlug    String   @id
+  /// Mảng câu thoại: SubtitleLine[] (xem types/video.ts); câu có start = null là chưa căn
+  lines       Json
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+}

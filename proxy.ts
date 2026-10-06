@@ -23,6 +23,7 @@ export const config = {
     "/lessons/:path*",
     "/practice/:path*",
     "/leaderboard/:path*",
+    "/videos/:path*",
     "/ai-chat/:path*",
   ],
 };

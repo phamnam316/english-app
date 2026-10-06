@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Gamepad2, House, Trophy, type LucideIcon } from "lucide-react";
+import { Clapperboard, Gamepad2, House, Trophy, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -17,6 +17,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Trang chủ", icon: House, also: ["/courses"] },
   { href: "/practice", label: "Luyện tập", icon: Gamepad2 },
+  { href: "/videos", label: "Xem phim", icon: Clapperboard },
   { href: "/leaderboard", label: "Xếp hạng", icon: Trophy },
 ];
 

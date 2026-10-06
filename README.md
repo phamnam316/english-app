@@ -38,6 +38,18 @@ Wiktionary (CC BY-SA 4.0) và Tatoeba (CC BY 2.0 FR).
   của từng ngày trong 14 ngày gần nhất.
   Muốn đo trên database thật (Neon), đặt biến `DATABASE_URL` thành chuỗi kết nối của Neon rồi chạy lệnh này.
 
+## Xem phim
+
+- `/videos`: các clip ngắn We Bare Bears nhúng từ kênh YouTube chính thức (trình phát của YouTube, không tải video về),
+  kèm phụ đề song ngữ, bấm từ để tra nghĩa (bảng `Vocabulary`), phát lại / lặp câu, tự dừng sau mỗi câu, tốc độ chậm.
+- Danh sách clip nằm trong `lib/videos/catalog.ts`. Trước khi thêm clip, mở
+  `https://www.youtube.com/oembed?url=<link video>&format=json`: phải trả JSON của kênh chính thức (401 = video tắt nhúng).
+- Phụ đề do tài khoản `ADMIN` căn ở `/videos/<slug>/studio` (bảng `VideoSubtitle`): dán lời thoại chép từ trang Transcript
+  của We Bare Bears Wiki, bấm **Dịch tự động** (cần `OPENAI_API_KEY`; đổi model bằng `OPENAI_TRANSLATE_MODEL`, mặc định
+  `gpt-4.1-mini`), phát video và nhấn Space mỗi khi một câu bắt đầu, rồi **Lưu phụ đề**.
+- Cấp quyền ADMIN cho 1 tài khoản (Neon → SQL Editor, hoặc `npm run db:studio` khi chạy máy):
+  `UPDATE "User" SET role = 'ADMIN' WHERE email = '<email>';` Quyền mới có hiệu lực sau tối đa 1 phút (session tự nạp lại).
+
 Cấu hình trong `.env` (mẫu: `.env.example`). `GOOGLE_CLIENT_ID/SECRET` và `OPENAI_API_KEY` là tùy chọn:
 thiếu Google thì ẩn nút đăng nhập Google, thiếu OpenAI thì nút nghe dùng giọng đọc của trình duyệt.
 

@@ -21,6 +21,15 @@ import type {
   WordRatingRequest,
   WordRatingResponse,
 } from "@/types/api";
+import type {
+  SaveSubtitlesRequest,
+  SaveSubtitlesResponse,
+  TranslateLinesRequest,
+  TranslateLinesResponse,
+  VideoDetailResponse,
+  VideoListResponse,
+  WordLookupResponse,
+} from "@/types/video";
 
 export class ApiClientError extends Error {
   constructor(
@@ -129,4 +138,18 @@ export const api = {
     const response = await send("/api/ai/tts", postJson(body, signal));
     return response.blob();
   },
+
+  getVideos: (signal?: AbortSignal) => request<VideoListResponse>("/api/videos", { signal }),
+
+  getVideo: (slug: string, signal?: AbortSignal) =>
+    request<VideoDetailResponse>(`/api/videos/${encodeURIComponent(slug)}`, { signal }),
+
+  saveVideoSubtitles: (slug: string, body: SaveSubtitlesRequest) =>
+    request<SaveSubtitlesResponse>(`/api/videos/${encodeURIComponent(slug)}`, { method: "PUT", body: JSON.stringify(body) }),
+
+  translateLines: (body: TranslateLinesRequest, signal?: AbortSignal) =>
+    request<TranslateLinesResponse>("/api/videos/translate", postJson(body, signal)),
+
+  lookupWord: (word: string, signal?: AbortSignal) =>
+    request<WordLookupResponse>(`/api/words/lookup?q=${encodeURIComponent(word)}`, { signal }),
 };
